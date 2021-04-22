@@ -1,0 +1,70 @@
+{% extends 'main.html' %}
+{% block body %}
+<h1 style="text-align: center;">{{ title }}</h1>
+<style>
+    table,
+    th,
+    td {
+        border: 1px solid black;
+    }
+</style>
+<div>Select <span class="text-highlight">tasks</span> you want to add into <span class="text-highlight">phase</span> <b>{{ phase.phase_name }}</b> of <span class="text-highlight">project</span> <b>{{ project.name }}</b>.
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        {{ all_tasks.management_form }}
+        <table id="select-task">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" name="task-all" id="task-all" checked />&nbsp;Select</th>
+                    <th>Task Name</th>
+                    <th><i class="fas fa-trash-alt"></i> Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in all_tasks %}
+                {% for hidden in task.hidden_fields %}
+                {{ hidden }}
+                {% endfor %}
+                <tr>
+                    <td class="task-selected">{{ task.selected }}</td>
+                    <td>{{ task.task_name }}</td>
+                    <td class="task-delete">{{ task.DELETE }}</td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+        <input type="submit" name="save-task-settings" id="save-task-settings" value="Save Task Settings">
+    </form>
+    <form method="post">
+        {% csrf_token %}
+        <input type="submit" name="add-task-to-phase" id="add-task-to-phase" value="Add Task to {{ phase.phase_name }}">
+    </form>
+</div>
+{% endblock body %}
+{% block script %}
+<script>
+    jQuery(function ($) {
+        $('#select-task input[placeholder="Add new task"]').focus();
+        $('#task-all').prop('checked', false);
+        $('#task-all').click(function () {
+            var $all_box = $('#select-task').find('tr:not(:last-child) .task-selected input[type=checkbox]');
+            var isChecked = $(this).prop('checked');
+            if (isChecked) {
+                $all_box.prop('checked', true);
+            }
+            else {
+                $all_box.prop('checked', false);
+            }
+        });
+        $('.messages .success').delay(2000).fadeOut(500);
+    });
+</script>
+{% endblock script %}

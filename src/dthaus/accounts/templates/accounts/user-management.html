@@ -1,0 +1,56 @@
+{% extends 'main.html' %}
+{% block head %}
+{% endblock head %}
+{% block body %}
+<h1 style="text-align: center;">{{ title }}</h1>
+<style>
+    table,
+    th,
+    td {
+        border: 1px solid black;
+    }
+
+    table {
+        margin: 30px 0px;
+    }
+</style>
+<div>
+    <a href="{% url 'register' %}">Add User</a>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <div>
+        <table>
+            <thead>
+                <th>Username</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Permission</th>
+            </thead>
+            <tbody>
+                {% for user in user_list %}
+                <tr>
+                    <td>{{ user }}</td>
+                    <td>{{ user.first_name }}</td>
+                    <td>{{ user.last_name }}</td>
+                    <td>{{ user.email }}</td>
+                    {% if user.is_superuser %}
+                    <td>super admin</td>
+                    {% elif user.is_staff %}
+                    <td>admin</td>
+                    {% else %}
+                    <td>user</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock body %}

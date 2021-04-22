@@ -1,0 +1,251 @@
+{% extends 'main.html' %}
+{% block body %}
+<h1 style="text-align: center;">{{ title }}</h1>
+<style>
+    table,
+    th,
+    td {
+        border: 1px solid black;
+    }
+
+    table {
+        margin: 30px 0px;
+    }
+
+    .file-pending,
+    .file-approved,
+    .file-rejected {
+        font-weight: bold;
+    }
+
+    .file-approved {
+        color: green;
+    }
+
+    .file-rejected {
+        color: red;
+    }
+</style>
+<div>
+    <a href="{% url 'task_settings' project.project_id phase.id %}">Add more Task</a>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" class="task-form">
+        {% csrf_token %}
+        {{ task_form.management_form }}
+        <div class="col-md-12 row">
+            <div class="col-md-4">
+                <div>
+                    Project: <b>{{ project.name }}</b> - Phase: <b>{{ phase.phase_name }}</b>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <p>Phase Description: {{ phase.description }}</p>
+            </div>
+            <div class="col-md-4">
+                <p>Project Description: {{ project.description }}</p>
+            </div>
+            <div class="col-md-12">
+                <p>Task Description: {{ task_form.description }}</p>
+            </div>
+            <div class="col-md-6">
+                <p>User upload: {{ task_form.user_upload }}</p>
+                <p>Start upload: {{ task_form.start_date_upload }}</p>
+                <p>Due upload: {{ task_form.due_date_upload }}</p>
+            </div>
+            <div class="col-md-6">
+                <p>User approve: {{ task_form.user_approve }}</p>
+                <p>Start approve: {{ task_form.start_date_approve }}</p>
+                <p>Due approve: {{ task_form.due_date_approve }}</p>
+            </div>
+        </div>
+
+        <div>
+            <table>
+                <!-- style="table-layout: fixed; width: 100%;" -->
+                <thead>
+                    <th>Task Name</th>
+                    <th>Task Status</th>
+                    <th>Upload Status</th>
+                    <th>Approve Status</th>
+                    <th>File Attachment</th>
+                    <th>Finish</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ task_form.task_name }}</td>
+                        <td>{{ task_form.task_status }}</td>
+                        <td>{{ task_form.upload_status }}</td>
+                        <td>{{ task_form.approve_status }}</td>
+                        {% if last_file != 0 %}
+                        <td>
+                            Currently: <a href="{{ last_file.url }}" target="_blank">{{ last_file.name }}</a>
+                            {% if last_file.file_approved == False and last_file.file_rejected == False %}
+                            <span class="file-pending">Pending</span>
+                            {% elif last_file.file_approved == True %}
+                            <span class="file-approved">Approved</span>
+                            {% else %}
+                            <span class="file-rejected">Rejected</span>
+                            {% endif %}
+                            <br>
+                            Change: <input type="file" name="attachment" id="id_attachment">
+                        </td>
+                        {% else %}
+                        <td>
+                            <input type="file" name="attachment" required id="id_attachment">
+                        </td>
+                        {% endif %}
+                        <td>{{ task_form.task_finished }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <input type="submit" name="update-task" id="update-task" value="Update Task">
+            <a href="{% url 'task_views' project.project_id phase.id %}"><input type="button"
+                    value="Back to Task View"></a>
+            <a href="{% url 'phase_edit' project.project_id %}"><input type="button" value="Back to Phase Edit"></a>
+        </div>
+    </form>
+
+    {% if task_files %}
+    <div>
+        <table>
+            <thead>
+                <th>File ID</th>
+                <th>File Name</th>
+                <th>URL</th>
+                <th>Task ID</th>
+                <th>Owner</th>
+                <th>Date Uploaded</th>
+                <th>File Status</th>
+                <th>Note</th>
+            </thead>
+            <tbody>
+                {% for task_file in task_files %}
+                <tr>
+                    <td>{{ task_file.id }}</td>
+                    <td>{{ task_file.name }}</td>
+                    <td><a href="{{ task_file.url }}" target="_blank">{{ task_file.url }}</a></td>
+                    <td>{{ task_file.task.task_id }}</td>
+                    <td>{{ task_file.user }}</td>
+                    <td>{{ task_file.date_uploaded|date:"d M Y H:i:s" }}</td>
+                    {% if task_file.file_approved == False and task_file.file_rejected == False %}
+                    <td class="file-pending">Pending</td>
+                    {% elif task_file.file_approved == True %}
+                    <td class="file-approved">Approved</td>
+                    {% else %}
+                    <td class="file-rejected">Rejected</td>
+                    {% endif %}
+                    <td>{{ task_file.note }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <form method="post" class='approve-form'>
+            {% csrf_token %}
+            {{ approve_form.management_form }}
+            <table>
+                <thead>
+                    <th>File ID</th>
+                    <th>File Name</th>
+                    <th>URL</th>
+                    <th>Approve</th>
+                    <th>Reject</th>
+                    <th>Last Approved</th>
+                    <th>Note</th>
+                </thead>
+                <tbody>
+                    {% for item in approve_form %}
+                    {% for hidden in item.hidden_fields %}
+                    {{hidden}}
+                    {% endfor %}
+                    <tr>
+                        <td>{{ item.id.value }}</td>
+                        <td>{{ item.name.value }}</td>
+                        <td><a href="{{ item.url.value }}" target="_blank">{{ item.url.value }}</a></td>
+                        <td>{{ item.file_approved }}</td>
+                        <td>{{ item.file_rejected }}</td>
+                        <td>{{ item.date_approved }}</td>
+                        <td>{{ item.note }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <input type="submit" name="btn-approve-file" id="btn-approve-file" value="Approve/Reject">
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock body %}
+{% block script %}
+<script>
+    function getTimestampNow() {
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0') - 0;
+        var mm = String(today.getMonth() + 1).padStart(2, '0') - 1;
+        var yyyy = today.getFullYear();
+        arr = [];
+        arr.push(yyyy);
+        arr.push(mm);
+        arr.push(dd);
+        today = new Date(arr[0], arr[1], arr[2]);
+        today = Date.parse(today);
+
+        return today;
+    }
+
+    jQuery(function ($) {
+        var today = getTimestampNow();
+        var task_finished = '{{ task_form.task_finished.value }}';
+        
+        var date_finished = '{{ task.date_finished|date:"d M Y H:i:s" }}';
+        var last_upload = '{{ last_file.date_uploaded|date:"d M Y H:i:s" }}';
+        var last_approve = '';
+        
+        var due_upload = '{{ task_form.due_date_upload.value|date:"d M Y H:i:s" }}';
+        var due_approve = '{{ task_form.due_date_approve.value|date:"d M Y H:i:s" }}';
+
+        /* Convert to timestamp */
+        last_upload = Date.parse(last_upload);
+        due_upload = Date.parse(due_upload); 
+        due_approve = Date.parse(due_approve);
+        date_finished = Date.parse(date_finished);
+
+        if (due_upload - last_upload < 0){
+            $('#id_upload_status').val('Overdue').css({ 'background-color': 'red', 'color': 'white' });
+        }
+        if (due_approve - today < 0) {
+            $('#id_approve_status').val('Overdue').css({ 'background-color': 'red', 'color': 'white' });
+        }
+
+        if (task_finished === 'True') {
+            //$('#update-task').prop('disabled', true);
+            //$('input, select').prop('disabled', true);
+            $('#id_task_status').val('Completed').css({'background-color': 'green', 'color': 'white'});
+
+            var delta_upload = due_upload - last_upload;
+            if (delta_upload >= 0) { // Complete
+                $('#id_upload_status').val('Completed').css({ 'background-color': 'green', 'color': 'white' });
+            }
+            else { // Complete overdue
+                $('#id_upload_status').val('Completed Overdue').css({ 'background-color': 'rgba(255,0,0,0.7)', 'color': 'white' });
+            }
+
+            var delta_approve = due_approve - date_finished;
+            if (delta_approve >= 0) { // Complete
+                $('#id_approve_status').val('Completed').css({ 'background-color': 'green', 'color': 'white' });
+            }
+            else { // Complete overdue
+                $('#id_approve_status').val('Completed Overdue').css({ 'background-color': 'rgba(255,0,0,0.7)', 'color': 'white' });
+            }
+        }
+    });
+</script>
+{% endblock script %}

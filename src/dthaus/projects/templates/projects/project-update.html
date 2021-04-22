@@ -1,0 +1,14 @@
+{% extends 'main.html' %}
+{% block body %}
+<h1 style="text-align: center;">{{ title }}</h1>
+<form action="" method="POST">
+    {% csrf_token %}
+    {{ project_update_form }}
+    {% for item in phase_form %}
+        <p>{{ item }}</p>
+    {% endfor %}
+    <a href="{% url 'projects' %}">Cancel</a>
+    <button type="submit">Update Project</button>
+</form>
+
+{% endblock body %}

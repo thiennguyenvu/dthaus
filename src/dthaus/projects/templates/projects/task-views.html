@@ -1,0 +1,79 @@
+{% extends 'main.html' %}
+{% block body %}
+<h1 style="text-align: center;">{{ title }}</h1>
+<style>
+    table,
+    th,
+    td {
+        border: 1px solid black;
+    }
+
+    table {
+        margin: 30px 0px;
+    }
+</style>
+
+<div>
+    <a href="{% url 'task_settings' project.project_id phase.id %}">Add more Task</a>
+    <div class="col-md-12 row">
+        <div class="col-md-4">
+            <div>
+                Project: <b>{{ project.name }}</b> - Phase: <b>{{ phase.phase_name }}</b>
+            </div>
+        </div>
+        <div class="col-md-8">
+            Phase Description: {{ phase.description }}
+        </div>
+    </div>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>
+            {% if 'safe' in message.tags %} {{ message|safe }}
+            {% else %} {{ message }} {% endif %}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <div>
+        {% if tasks %}
+        <form method="POST">
+            {% csrf_token %}
+            <table>
+                <thead>
+                    <th>Task Name</th>
+                    <th>Status</th>
+                    <th>Task Settings</th>
+                    <th></th>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    {% for hidden in task.hidden_fields %}
+                    {{hidden}}
+                    {% endfor %}
+                    <tr>
+                        <td>{{ task.task_name }}</td>
+                        <td>{{ task.task_status }}</td>
+                        <td>
+                            <a href="{% url 'task_edits' project.project_id phase.id task.task_id %}">Edit</a>
+                        </td>
+                        <td>
+                            <a href="{% url 'task_delete' project.project_id phase.id task.task_id %}">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </form>
+        {% endif %}
+        <a href="{% url 'phase_edit' project.project_id %}"><input type="button" value="Back to Phase Edit"></a>
+    </div>
+</div>
+
+{% endblock body %}
+{% block script %}
+<script>
+
+</script>
+{% endblock script %}

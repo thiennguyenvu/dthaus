@@ -1,0 +1,4 @@
+- Description cho Task, Phase
+- Upload file pdf, excel, word, csv, jpg, png
+- User foreign key
+- 

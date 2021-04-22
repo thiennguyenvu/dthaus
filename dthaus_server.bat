@@ -1,0 +1,1 @@
+start cmd /k "cd D:\Users\Administrator\Desktop\django && djenv\Scripts\activate.bat && cd src\dthaus && title Dthaus && python manage.py runserver"

@@ -1,0 +1,75 @@
+{% extends 'main.html' %}
+{% block body %}
+<h1 style="text-align: center;">{{ title }}</h1>
+<style>
+    table,
+    th,
+    td {
+        border: 1px solid black;
+    }
+
+    table {
+        margin: 30px 0px;
+    }
+</style>
+<div>
+    <a href="{% url 'phase_settings' project.project_id %}">Add more Phase</a>
+    <div class="col-md-12 row">
+        <div class="col-md-4">
+            <div>Project: <b>{{ project.name }}</b></div>
+        </div>
+        <div class="col-md-8">
+            Project Description: {{ project.description }}
+        </div>
+    </div>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <div>
+        <form method="POST">
+            {% csrf_token %}
+            {{ phase_form.management_form }}
+            <table>
+                <thead>
+                    <th>Phase Name</th>
+                    <th>Description</th>
+                    <th>Start Date</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Finished</th>
+                    <th>Task View</th>
+                    <th><i class="fas fa-trash-alt"></i> Delete</th>
+                </thead>
+                <tbody>
+                    {% for phase in phase_form %}
+                    {% for hidden in phase.hidden_fields %}
+                    {{hidden}}
+                    {% endfor %}
+                    <tr>
+                        <td>{{ phase.phase_name }}</td>
+                        <td>{{ phase.description }}</td>
+                        <td>{{ phase.start_date }}</td>
+                        <td>{{ phase.due_date }}</td>
+                        <td>{{ phase.phase_status }}</td>
+                        <td>{{ phase.phase_finished }}</td>
+                        <td>
+                            <a href="{% url 'task_views' project.project_id phase.id.value %}">View Details</a>
+                        </td>
+                        <td>{{ phase.DELETE }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <input type="submit" name="update-phase" value="Update Phase">
+        </form>
+    </div>
+</div>
+{% endblock body %}
+{% block script %}
+{% endblock script %}

@@ -1,0 +1,190 @@
+{% extends 'main.html' %}
+{% block head %}
+{% endblock head %}
+{% block body %}
+<h1 style="text-align: center;">{{ title }}</h1>
+<style>
+    table,
+    th,
+    td {
+        border: 1px solid black;
+    }
+
+    /* Tree View */
+    .tree {
+        margin: 10px;
+        min-height: 20px;
+        padding: 19px;
+        margin-bottom: 20px;
+        background-color: #fbfbfb;
+        border: 1px solid #999;
+        -webkit-border-radius: 4px;
+        -moz-border-radius: 4px;
+        border-radius: 4px;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+        -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05)
+    }
+
+    .tree li {
+        list-style-type: none;
+        margin: 0;
+        padding: 10px 5px 0 5px;
+        position: relative
+    }
+
+    .tree li::before,
+    .tree li::after {
+        content: '';
+        left: -20px;
+        position: absolute;
+        right: auto
+    }
+
+    .tree li::before {
+        border-left: 1px solid #999;
+        bottom: 50px;
+        height: 100%;
+        top: 0;
+        width: 1px
+    }
+
+    .tree li::after {
+        border-top: 1px solid #999;
+        height: 20px;
+        top: 25px;
+        width: 25px
+    }
+
+    .tree li span {
+        -moz-border-radius: 5px;
+        -webkit-border-radius: 5px;
+        border: 1px solid #999;
+        border-radius: 5px;
+        display: inline-block;
+        padding: 3px 8px;
+        text-decoration: none
+    }
+
+    .tree li.parent_li>span {
+        cursor: pointer
+    }
+
+    .tree>ul>li::before,
+    .tree>ul>li::after {
+        border: 0
+    }
+
+    .tree li:last-child::before {
+        height: 30px
+    }
+
+    .tree li.parent_li>span:hover,
+    .tree li.parent_li>span:hover+ul li span {
+        background: #eee;
+        border: 1px solid #94a0b4;
+        color: #000
+    }
+</style>
+<div>
+    <div class="tree well">
+        <ul>
+            {% for project in projects %}
+                <li>
+                    <span><i class="fas fa-clipboard-list"></i> {{ project }} </span> <a href="{% url 'project_update' project.project_id %}">Edit Project</a>
+                    <ul>
+                        {% for phase in phases %}
+                            {% if phase.project == project %}
+                                <li>
+                                    <span><i class="fas fa-list-alt"></i> {{ phase }}</span> <a href="{% url 'phase_edit' project.project_id %}">Edit Phase</a>
+                                    <ul>
+                                        {% for task in tasks %}
+                                        {% if task.phase == phase %}
+                                            <li>
+                                                <span><i class="fas fa-tasks"></i> {{ task }}</span> <a href="{% url 'task_edits' project.project_id phase.id task.task_id %}">Edit Task</a>
+                                            </li>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+<div>
+    <a href="{% url 'project_create' %}">Add New Project</a>
+    {% if projects %}
+    <table>
+        <thead>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Date Created</th>
+            <th>Start Date</th>
+            <th>Due Date</th>
+            <th>Phase Order</th>
+            <th>Date Finished</th>
+            <th>Progress</th>
+            <th>Customers</th>
+            <th>Project Manager</th>
+            <th colspan="2">Permission</th>
+        </thead>
+        <tbody>
+            {% for item in projects %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.description }}</td>
+                <td>{{ item.status }}</td>
+                <td>{{ item.priority }}</td>
+                <td>{{ item.date_created }}</td>
+                <td>{{ item.start_date|date:"d-m-Y" }}</td>
+                <td>{{ item.due_date|date:"d-m-Y" }}</td>
+                <td>{{ item.phase_order }}</td>
+                <td>{{ item.date_finished|date:"d-m-Y" }}</td>
+                <td>{{ item.progress }}</td>
+                <td>{{ item.customer }}</td>
+                <td>{{ item.project_manager }}</td>
+                <td>
+                    <a href="{% url 'project_update' item.project_id %}">Update</a>
+                </td>
+                <td>
+                    <a href="{% url 'project_delete' item.project_id %}">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div>
+        <p>This content isn't available at the moment</p>
+        <p>When this happens, it's usually because the owner only shared it with a small group of people or changed who
+            can see it,
+            or it's been deleted.</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock body %}
+{% block script %}
+<script>
+    $(function () {
+        $('.tree li:has(ul)').addClass('parent_li').find(' > span').attr('title', 'Collapse this branch');
+        $('.tree li.parent_li > span').on('click', function (e) {
+            var children = $(this).parent('li.parent_li').find(' > ul > li');
+            if (children.is(":visible")) {
+                children.hide('fast');
+                $(this).attr('title', 'Expand this branch').find(' > i').removeClass('fas fa-list-alt').addClass('far fa-list-alt');
+            } else {
+                children.show('fast');
+                $(this).attr('title', 'Collapse this branch').find(' > i').removeClass('far fa-list-alt').addClass('fas fa-list-alt');
+            }
+            e.stopPropagation();
+        });
+    });
+</script>
+{% endblock script %}

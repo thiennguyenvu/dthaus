@@ -1,0 +1,39 @@
+arr = [];
+            arr.push(
+                arm_a, arm_b, arm_c, arm_d, arm_e, arm_f, arm_j,
+                ass_a, ass_b, ass_c, ass_d, ass_e, ass_f, ass_j,
+            );
+            for (var i = 0; i < arr.length; i++){
+                if (Object.keys(arr[i]).length > 0){
+                    console.log(arr[i]);
+                    
+                    //$('.arm-a button').removeAttr('disabled').addClass('enabled');
+                }
+                else{
+                    console.log('No');
+                }
+            }
+            console.log(arr);
+
+
+            obj = {};
+            obj['arm_a'] = arm_a;
+            obj['arm_b'] = arm_b;
+            obj['arm_c'] = arm_c;
+            obj['arm_d'] = arm_d;
+            obj['arm_e'] = arm_e;
+            obj['arm_f'] = arm_f;
+            obj['arm_j'] = arm_j;
+
+            obj['ass_a'] = ass_a;
+            obj['ass_b'] = ass_b;
+            obj['ass_c'] = ass_c;
+            obj['ass_d'] = ass_d;
+            obj['ass_e'] = ass_e;
+            obj['ass_f'] = ass_f;
+            obj['ass_j'] = ass_j;
+            console.log(obj);
+
+            for (var i = 0; i < Object.keys(obj).length; i++) {
+                console.log(obj[i]);
+            }

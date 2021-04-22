@@ -1,0 +1,63 @@
+{% extends 'main.html' %}
+{% block head %}
+{% endblock head %}
+{% block body %}
+<h1 style="text-align: center;">{{ title }}</h1>
+<div>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>
+            {% if 'safe' in message.tags %} {{ message|safe }}
+            {% else %} {{ message }} {% endif %}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+<div>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ register_form.management }}
+        <p>
+            <label for="id_username">Username:</label>
+            {{ register_form.username }}
+        </p>
+        <p>
+            <label for="id_first_name">First name:</label>
+            {{ register_form.first_name }}
+        </p>
+        <p>
+            <label for="id_last_name">Last name:</label>
+            {{ register_form.last_name }}
+        </p>
+        <p>
+            <label for="id_email">Email address:</label>
+            {{ register_form.email }}
+        </p>
+        <p>
+            <label for="id_password">Password:</label>
+            {{ register_form.password }}
+        </p>
+        <p>
+            <label for="id_confirm_password">Confirm password:</label>
+            {{ register_form.confirm_password }}
+        </p>
+        <p>
+            <label for="id_birth_date">Birth date:</label>
+            {{ register_form.birth_date }}
+        </p>
+        <p>
+            <label for="id_avatar">Avatar:</label>
+            {{ register_form.avatar }}
+        </p>
+        <p>
+            <label for="id_bio">Bio:</label>
+            {{ register_form.bio }}
+        </p>
+    
+        <input type="submit" value="Create User">
+        <a href="{% url 'user_management' %}"><input type="button" value="Back to User Management"></a>
+    </form>
+
+</div>
+{% endblock body %}

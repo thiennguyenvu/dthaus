@@ -1,0 +1,11 @@
+{% extends 'main.html' %}
+{% block body %}
+<h1 style="text-align: center;">{{ title }}</h1>
+
+<form action="{% url 'task_delete' project.project_id phase.id task.task_id %}" method="POST">
+    {% csrf_token %}
+    <div>Are you sure you want to delete task <b>{{ task.task_name }}</b>?</div>
+    <a href="{% url 'task_views' project.project_id phase.id %}">Cancel</a>
+    <button type="submit">Delete</button>
+</form>
+{% endblock body %}

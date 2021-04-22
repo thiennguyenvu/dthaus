@@ -1,0 +1,61 @@
+{% load static %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+{% endblock head %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <!-- .fixed-top -->
+    <img src="{% static 'images/logo.png' %}" id="dj-logo" alt="dj-logo">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
+        aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+        <ul class="navbar-nav w-100">
+            <li class="nav-item active">
+                <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-tachometer-alt"></i><span
+                        class="label">Dashboard</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'projects' %}"><i class="fas fa-clipboard-list"></i><span
+                        class="label">Projects</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'customers' %}"><i class="fas fa-comments-dollar"></i><span
+                        class="label">Customers</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'user_management' %}"><i class="fas fa-users-cog"></i><span
+                        class="label">User Management</span></a>
+            </li>
+        </ul>
+        <ul class="navbar-nav w-100">
+            <li class="nav-item ml-auto">
+                <a class="nav-link display-name" href="{% url 'profiles' username=request.user.username %}">
+                    {% if request.user.avatar %}
+                    <img intrinsicsize="32x32" class="navbar-profile-img" src="{{ request.user.avatar.url }}">
+                    {% endif %}
+                    <span class="label"><b>{{ user }}</b></span></a>
+            </li>
+            <li class="nav-item dropdown ml-auto">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false" aria-label="settings"><i
+                        class="fas fa-sliders-h"></i></a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                    <a class="dropdown-item" href="{% url 'profiles' username=request.user.username %}"><i
+                            class="fas fa-id-card"></i><span class="label">See your
+                            profile</span></a>
+                    <a class="dropdown-item" href="#"><i class="fas fa-comment-dots"></i><span class="label">Give
+                            Feedback</span></a>
+                    <a class="dropdown-item" href="{% url 'settings' username=request.user.username %}"><i class="fas fa-cogs"></i><span class="label">Settings &
+                            Privacy</span></a>
+                    <a class="dropdown-item" href="#"><i class="fas fa-tv"></i><span class="label">Display &
+                            Accessibility</span></a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i><span
+                            class="label">Log
+                            out</span></a>
+                </div>
+            </li>
+        </ul>
+    </div>
+</nav>
