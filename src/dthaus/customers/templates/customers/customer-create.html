@@ -5,6 +5,13 @@
 <h1 style="text-align: center;">{{ title }}</h1>
 <a href="{% url 'customers' %}"><input type="button" value="Previous"></a>
 <div>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
     <form method="POST">
         {% csrf_token %}
         <table>
