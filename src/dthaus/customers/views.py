@@ -30,6 +30,8 @@ def customer_create(request):
         if form.is_valid():
             new_customer = form.save()
             return redirect('customers')
+        else:
+            messages.add_message(request, messages.ERROR, form.errors)
 
     context = {
         'brand': brand,
