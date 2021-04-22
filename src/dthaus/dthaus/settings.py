@@ -27,8 +27,8 @@ SECRET_KEY = '=wrr$qsdb1f6@x0!m1h##i6%e^ap9!ukw8vmy+x29k$8g*2#pz'
 DEBUG = False
 
 ALLOWED_HOSTS = ['*']
-runserver.default_port = '8000'
-runserver.default_addr = '127.0.0.1'
+runserver.default_port = '9001'
+runserver.default_addr = '192.168.7.8'
 
 # Application definition
 
@@ -90,7 +90,7 @@ DATABASES = {
     'default': {
         'NAME': 'django',
         'ENGINE': 'sql_server.pyodbc',
-        'HOST': 'LAPTOP-TNV',
+        'HOST': 'MMP',
         'USER': '',
         'PASSWORD': '',
         'OPTIONS': {
@@ -155,4 +155,3 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # User table custom
 AUTH_USER_MODEL = "accounts.UserManagement"
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-print(MEDIA_ROOT)
