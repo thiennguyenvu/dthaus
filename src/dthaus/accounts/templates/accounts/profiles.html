@@ -47,32 +47,6 @@
         {{profile_form}}
     </div>
 </div>
-<!-- <div class="col-md-6">
-    <form id="profiles-form" method="POST">
-        {% csrf_token %}
-        <fieldset>
-            <legend>User: {{ user.username }}</legend>
-            <div class="row">
-                <div class="col-md-12">
-                    <label for="first_name">First name: </label>
-                    <input name="first_name" id="first_name" type="text" {% if user.first_name %}
-                        value="{{ user.first_name }}" {% endif %}><br>
-                    <label for="last_name">Last name: </label>
-                    <input name="last_name" id="last_name" type="text" {% if user.last_name %}
-                        value="{{ user.last_name }}" {% endif %}><br>
-                    <label for="email">Email: </label>
-                    <input name="email" id="email" type="text" {% if user.email %} value="{{ user.email }}" {% endif %}>
-                </div>
-                <div class="col-md-12">
-                    <div class="last-login">Last login: {{ user.last_login }}</div>
-                    <div>Date joined: {{ user.date_joined }}</div>
-                    <div>User permission: {{ user.user_permissions }}</div>
-                </div>
-                <button type="submit">Update</button>
-            </div>
-        </fieldset>
-    </form>
-</div> -->
 
 {% endblock body %}
 {% block script %}
