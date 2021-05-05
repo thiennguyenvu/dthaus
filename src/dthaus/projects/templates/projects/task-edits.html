@@ -1,17 +1,8 @@
 {% extends 'main.html' %}
 {% block body %}
+{% include 'projects/horizontal-timeline.html' %}
 <h1 style="text-align: center;">{{ title }}</h1>
 <style>
-    table,
-    th,
-    td {
-        border: 1px solid black;
-    }
-
-    table {
-        margin: 30px 0px;
-    }
-
     .file-pending,
     .file-approved,
     .file-rejected {

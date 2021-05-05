@@ -1,13 +1,7 @@
 {% extends 'main.html' %}
 {% block body %}
+{% include 'projects/horizontal-timeline.html' %}
 <h1 style="text-align: center;">{{ title }}</h1>
-<style>
-    table,
-    th,
-    td {
-        border: 1px solid black;
-    }
-</style>
 <div>Select <span class="text-highlight">tasks</span> you want to add into <span class="text-highlight">phase</span> <b>{{ phase.phase_name }}</b> of <span class="text-highlight">project</span> <b>{{ project.name }}</b>.
     {% if messages %}
     <ul class="messages">

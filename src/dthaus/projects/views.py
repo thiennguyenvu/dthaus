@@ -33,7 +33,7 @@ def projects(request):
 
 @login_required(login_url='login')
 def project_create(request):
-    title = 'Create New Project'
+    title = 'Create Project'
     stage = 1
     create_form = ProjectCreateForm()
     list_phase = CustomPhase.objects.all()
@@ -131,7 +131,7 @@ def phase_settings(request, pk_project):
                     print(formset.errors)
             else:
                 messages.add_message(
-                    request, messages.WARNING, 'There\'s nothing change.')
+                    request, messages.WARNING, 'There is nothing to change.')
 
         if 'add-phase-to-project' in request.POST:
             for phase_item in list_phase:
@@ -169,7 +169,7 @@ def phase_settings(request, pk_project):
 
 @login_required(login_url='login')
 def phase_edit(request, pk_project):
-    title = 'Edit Phase'
+    title = 'Phase Edit'
     stage = 3
     project = Project.objects.get(project_id=pk_project)
     phases = Phase.objects.filter(project=project)
@@ -192,7 +192,7 @@ def phase_edit(request, pk_project):
                     messages.add_message(request, messages.ERROR, form.error)
             else:
                 messages.add_message(
-                    request, messages.WARNING, 'There\'s nothing change.')
+                    request, messages.WARNING, 'There is nothing to change.')
             return redirect('phase_edit', project.project_id)
 
     context = {
@@ -270,7 +270,7 @@ def task_settings(request, pk_project, pk_phase):
 @login_required(login_url='login')
 def task_views(request, pk_project, pk_phase):
     title = 'Task View'
-    stage = 5
+    stage = 4
     project = Project.objects.get(project_id=pk_project)
     phase = Phase.objects.get(id=pk_phase)
     tasks = Task.objects.filter(phase=phase)
@@ -289,7 +289,7 @@ def task_views(request, pk_project, pk_phase):
 @login_required(login_url='login')
 def task_edits(request, pk_project, pk_phase, pk_task):
     title = 'Edit Task'
-    stage = 6
+    stage = 5
     project = Project.objects.get(project_id=pk_project)
     phase = Phase.objects.get(id=pk_phase)
     task = Task.objects.get(task_id=pk_task, phase=phase)

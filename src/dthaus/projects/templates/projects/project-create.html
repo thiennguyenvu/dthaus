@@ -1,21 +1,11 @@
 {% extends 'main.html' %}
 {% block body %}
+{% include 'projects/horizontal-timeline.html' %}
 <h1 style="text-align: center;">{{ title }}</h1>
-<style>
-    table,
-    th,
-    td {
-        border: 1px solid black;
-    }
-
-    table {
-        margin: 30px 0px;
-    }
-</style>
 <a href="{% url 'projects' %}"><input type="button" value="Previous"></a>
 <form method="POST">
     {% csrf_token %}
-    {{ create_form }}
+    {{ create_form.as_p }}
     <br>
     <button type="submit">Create Project</button>
 </form>

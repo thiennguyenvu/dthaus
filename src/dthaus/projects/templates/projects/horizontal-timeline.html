@@ -1,0 +1,109 @@
+<div class="progress_wrapper">
+    <div class="progress_inner">
+        <div class="progress_inner__step">
+            <label for="step-1">Create Project</label>
+        </div>
+        <div class="progress_inner__step">
+            <label for="step-2">Phase Settings</label>
+        </div>
+        <div class="progress_inner__step">
+            <label for="step-3">Phase Edit</label>
+        </div>
+        <div class="progress_inner__step">
+            <label for="step-4">Task View & Task Settings</label>
+        </div>
+        <div class="progress_inner__step">
+            <label for="step-5">Task Edit</label>
+        </div>
+        <input checked="checked" id="step-1" name="step" type="radio">
+        <input id="step-2" name="step" type="radio">
+        <input id="step-3" name="step" type="radio">
+        <input id="step-4" name="step" type="radio">
+        <input id="step-5" name="step" type="radio">
+        <div class="progress_inner__bar"></div>
+        <div class="progress_inner__bar--set"></div>
+        <div class="progress_inner__tabs">
+            <div class="tab tab-0">
+                <h1>Create Project</h1>
+                <div>You need fill all require fields below:
+                    <ul>
+                        <li>Project Name</li>
+                        <li>Due Date</li>
+                        <li>Customer. Create new customer <a target="_blank" href="{% url 'customers' %}">here</a></li>
+                        <li>Project Manager</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab tab-1">
+                <h1>Phase Settings</h1>
+                <div>
+                    <ul>
+                        <li>You can create a name of phase and inherit this name for next project</li>
+                        <li>Select/Unselect phases you want add to your project</li>
+                        <li>Save your choices with <i>'Save Phase Settings'</i> <b>before</b> click <i>'Add Phase to Project'</i></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab tab-2">
+                <h1>Phase Edit</h1>
+                <div>
+                    <ul>
+                        <li>You can change phase name and it doesn't affect with phase list of step <i>Phase Settings</i></li>
+                        <li>Add more phase</li>
+                        <li>Update all changes</li>
+                        <li>View task details in each phase</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab tab-3">
+                <h1>Task View & Task Settings</h1>
+                <div>
+                    <ul>
+                        <li>You can add more Task and create a name of Task, inherit this name for next phase</li>
+                        <li>Select/Unselect task you want add to your phase</li>
+                        <li>Save your choices with <i>'Save Task Settings'</i> <b>before</b> click <i>'Add Task to Phase'</i></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab tab-4">
+                <h1>Task Edit</h1>
+                <div>
+                    <ul>
+                        <li>Fill information of Task and click 'Update Task'</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="progress_inner__status">
+            <div class="box_base"></div>
+            <div class="box_lid"></div>
+            <div class="box_ribbon"></div>
+            <div class="box_bow">
+                <div class="box_bow__left"></div>
+                <div class="box_bow__right"></div>
+            </div>
+            <div class="box_item"></div>
+            <div class="box_tag"></div>
+            <div class="box_string"></div>
+        </div>
+    </div>
+</div>
+<script>
+    var stage = '{{ stage }}';
+    console.log(stage);
+    if (stage === '1'){
+        document.getElementById("step-1").click();
+    }
+    if (stage === '2'){
+        document.getElementById("step-2").click();
+    }
+    if (stage === '3'){
+        document.getElementById("step-3").click();
+    }
+    if (stage === '4'){
+        document.getElementById("step-4").click();
+    }
+    if (stage === '5'){
+        document.getElementById("step-5").click();
+    }
+</script>
