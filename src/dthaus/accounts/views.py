@@ -4,7 +4,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth import update_session_auth_hash
+from datetime import datetime
+from django.utils import timezone
+
 from .models import *
 from .forms import UserBioForm, UserAvatarForm, UserPasswordForm, \
     UserProfileForm, UserRegisterForm, UserManagementForm
@@ -50,7 +54,7 @@ def home(request):
 
 @login_required(login_url='login')
 def profiles(request, username):
-    title = 'Profiles'
+    title = 'Profiles'  
     user = request.user
     bio_form = UserBioForm()
     avatar_form = UserAvatarForm()
@@ -91,16 +95,26 @@ def settings(request, username):
             form = UserPasswordForm(request.POST, instance=user)
             if form.is_valid():
                 setting = form.save(commit=False)
-                plain_password = form.cleaned_data['password']
-                confirm_password = form.cleaned_data['confirm_password']
-                if plain_password == confirm_password:
-                    setting.password = make_password(plain_password)
-                    setting.save()
+                current_password = form.cleaned_data['current_password']
+                # Check user current password
+                if check_password(current_password, user.password):
+                    new_password = form.cleaned_data['new_password']
+                    confirm_password = form.cleaned_data['confirm_password']
+                    if new_password == confirm_password:
+                        # Hash password
+                        setting.password = make_password(new_password)
+                        setting.save()
+                        # Keep session when user change password
+                        update_session_auth_hash(request, user)
+                        messages.add_message(
+                            request, messages.SUCCESS, 'Password update successfully.')
+                        
+                    else:
+                        messages.add_message(
+                            request, messages.ERROR, 'Confirm password does not match.')
+                else: 
                     messages.add_message(
-                        request, messages.SUCCESS, 'Password update successfully.')
-                else:
-                    messages.add_message(
-                        request, messages.ERROR, 'Password does not match.')
+                        request, messages.ERROR, 'Invalid password.')
 
         if 'save-profile' in request.POST:
             form = UserProfileForm(request.POST, instance=user)
@@ -163,6 +177,11 @@ login_required(login_url='login')
 def user_management(request):
     title = 'User Management'
     user_list = UserManagement.objects.all()
+    time_now = datetime.now().astimezone()
+    my_format = time_now.strftime("%Y-%m-%dT%H:%M:%S%z")
+    
+    print(time_now)
+    print(my_format)
 
     context = {
         'brand': brand,

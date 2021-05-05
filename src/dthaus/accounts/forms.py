@@ -19,14 +19,13 @@ class UserProfileForm(ModelForm):
 
 
 class UserPasswordForm(ModelForm):
+    current_password = forms.CharField(widget=forms.PasswordInput())
+    new_password = forms.CharField(widget=forms.PasswordInput())
     confirm_password = forms.CharField(widget=forms.PasswordInput())
 
     class Meta:
         model = UserManagement
-        fields = ('password', 'confirm_password', )
-        widgets = {
-            'password': forms.PasswordInput(),
-        }
+        fields = ('current_password', 'new_password', 'confirm_password', )
 
 
 class UserBioForm(ModelForm):
