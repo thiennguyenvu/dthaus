@@ -4,6 +4,16 @@
 {% block body %}
 <h1 style="text-align: center;">{{ title }}</h1>
 <div>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>
+            {% if 'safe' in message.tags %} {{ message|safe }}
+            {% else %} {{ message }} {% endif %}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    
     {% if project_per_add == True %}
     <a href="{% url 'project_create' %}">Add New Project</a>
     {% endif %}

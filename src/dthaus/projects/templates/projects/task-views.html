@@ -42,7 +42,7 @@
                     {{hidden}}
                     {% endfor %}
                     <tr>
-                        <td>{{ task.task_name }}</td>
+                        <td>{{ task.name }}</td>
                         <td>{{ task.task_status }}</td>
                         <td>
                             <a href="{% url 'task_edits' project.id phase.id task.id %}">Edit</a>

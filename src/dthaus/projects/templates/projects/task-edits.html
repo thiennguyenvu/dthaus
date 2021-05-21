@@ -33,7 +33,7 @@
         <div class="col-md-12 row">
             <div class="col-md-4">
                 <div>
-                    Project: <b>{{ project.name }}</b> - Phase: <b>{{ phase.phase_name }}</b>
+                    Project: <b>{{ project.name }}</b> - Phase: <b>{{ phase.name }}</b>
                 </div>
             </div>
             <div class="col-md-4">
@@ -70,7 +70,7 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>{{ task_form.task_name }}</td>
+                        <td>{{ task_form.name }}</td>
                         <td>{{ task_form.task_status }}</td>
                         <td>{{ task_form.upload_status }}</td>
                         <td>{{ task_form.approve_status }}</td>

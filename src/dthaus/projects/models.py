@@ -4,6 +4,7 @@ from django.utils.timezone import now
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.core.files.storage import default_storage
+
 # Create your models here.
 from customers.models import Customer
 from accounts.models import UserManagement
@@ -43,13 +44,18 @@ class Project(models.Model):
     phase_order = models.BooleanField(default=True)
     date_finished = models.DateTimeField(blank=True, null=True)
 
+    def save(self, *args, **kwargs):
+        if self.due_date < self.start_date:
+            self.due_date = self.start_date
+        super(Project, self).save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
 
 class Phase(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
-    phase_name = models.CharField(max_length=300)
+    name = models.CharField(max_length=300)
     description = models.TextField(blank=True, null=True)
     start_date = models.DateTimeField(default=now)
     due_date = models.DateTimeField(default=now)
@@ -66,7 +72,7 @@ class Phase(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return self.phase_name
+        return self.name
 
 
 class CustomPhase(models.Model):
@@ -80,7 +86,7 @@ class CustomPhase(models.Model):
 
 class Task(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
-    task_name = models.CharField(max_length=300)
+    name = models.CharField(max_length=300)
     description = models.TextField(blank=True, null=True)
     start_date_upload = models.DateTimeField(default=now)
     due_date_upload = models.DateTimeField(default=now)
@@ -106,7 +112,7 @@ class Task(models.Model):
     phase = models.ForeignKey(Phase, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return self.task_name
+        return self.name
 
 
 class CustomTask(models.Model):
