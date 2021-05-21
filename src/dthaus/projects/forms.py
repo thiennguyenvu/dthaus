@@ -11,6 +11,7 @@ class ProjectCreateForm(ModelForm):
     class Meta:
         model = Project
         fields = '__all__'
+        exclude = ('progress', 'date_finished',)
         widgets = {
             'start_date': DateInput(),
             'due_date': DateInput(),

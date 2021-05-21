@@ -3,7 +3,7 @@
 {% include 'projects/horizontal-timeline.html' %}
 <h1 style="text-align: center;">{{ title }}</h1>
 <div>
-    <a href="{% url 'task_settings' project.project_id phase.id %}">Add more Task</a>
+    <a href="{% url 'task_settings' project.id phase.id %}">Add more Task</a>
     <div class="col-md-12 row">
         <div class="col-md-4">
             <div>
@@ -42,13 +42,13 @@
                     {{hidden}}
                     {% endfor %}
                     <tr>
-                        <td>{{ task.task_name }}</td>
+                        <td>{{ task.name }}</td>
                         <td>{{ task.task_status }}</td>
                         <td>
-                            <a href="{% url 'task_edits' project.project_id phase.id task.task_id %}">Edit</a>
+                            <a href="{% url 'task_edits' project.id phase.id task.id %}">Edit</a>
                         </td>
                         <td>
-                            <a href="{% url 'task_delete' project.project_id phase.id task.task_id %}">Delete</a>
+                            <a href="{% url 'task_delete' project.id phase.id task.id %}">Delete</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -56,7 +56,7 @@
             </table>
         </form>
         {% endif %}
-        <a href="{% url 'phase_edit' project.project_id %}"><input type="button" value="Back to Phase Edit"></a>
+        <a href="{% url 'phase_edit' project.id %}"><input type="button" value="Back to Phase Edit"></a>
     </div>
 </div>
 

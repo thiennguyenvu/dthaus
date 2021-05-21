@@ -111,7 +111,7 @@ def settings(request, username):
                         
                     else:
                         messages.add_message(
-                            request, messages.ERROR, 'Confirm password does not match.')
+                            request, messages.ERROR, "Password confirmation doesn't match password.")
                 else: 
                     messages.add_message(
                         request, messages.ERROR, 'Invalid password.')

@@ -3,7 +3,7 @@
 {% include 'projects/horizontal-timeline.html' %}
 <h1 style="text-align: center;">{{ title }}</h1>
 <div>
-    <a href="{% url 'phase_settings' project.project_id %}">Add more Phase</a>
+    <a href="{% url 'phase_settings' project.id %}">Add more Phase</a>
     <div class="col-md-12 row">
         <div class="col-md-4">
             <div>Project: <b>{{ project.name }}</b></div>
@@ -42,14 +42,14 @@
                     {{hidden}}
                     {% endfor %}
                     <tr>
-                        <td>{{ phase.phase_name }}</td>
+                        <td>{{ phase.name }}</td>
                         <td>{{ phase.description }}</td>
                         <td>{{ phase.start_date }}</td>
                         <td>{{ phase.due_date }}</td>
                         <td>{{ phase.phase_status }}</td>
                         <td>{{ phase.phase_finished }}</td>
                         <td>
-                            <a href="{% url 'task_views' project.project_id phase.id.value %}">View Details</a>
+                            <a href="{% url 'task_views' project.id phase.id.value %}">View Details</a>
                         </td>
                         <td>{{ phase.DELETE }}</td>
                     </tr>
