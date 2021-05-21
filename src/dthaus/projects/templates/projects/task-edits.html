@@ -18,7 +18,7 @@
     }
 </style>
 <div>
-    <a href="{% url 'task_settings' project.project_id phase.id %}">Add more Task</a>
+    <a href="{% url 'task_settings' project.id phase.id %}">Add more Task</a>
     {% if messages %}
     <ul class="messages">
         {% for message in messages %}
@@ -97,9 +97,9 @@
                 </tbody>
             </table>
             <input type="submit" name="update-task" id="update-task" value="Update Task">
-            <a href="{% url 'task_views' project.project_id phase.id %}"><input type="button"
+            <a href="{% url 'task_views' project.id phase.id %}"><input type="button"
                     value="Back to Task View"></a>
-            <a href="{% url 'phase_edit' project.project_id %}"><input type="button" value="Back to Phase Edit"></a>
+            <a href="{% url 'phase_edit' project.id %}"><input type="button" value="Back to Phase Edit"></a>
         </div>
     </form>
 

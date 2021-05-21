@@ -12,13 +12,93 @@ from .forms import ProjectCreateForm, PhaseCreateForm, ListPhaseForm, \
 
 brand = 'DONGJIN VIETNAM J.S.C'
 
+def all_permission(request):
+    permission = []
+
+    if request.user.user_group.all():
+        for group in request.user.user_group.all():
+            per_group = group.permission.all()
+            for per in per_group:
+                data = {}
+                data['object_type'] = group.object_type
+                data['object_id'] = group.object_id
+                data['permission'] = per
+                
+                if data not in permission:
+                    permission.append(data)
+    
+    return permission
+
+def has_permission(request, object_type, object_id, permission):
+    if request.user.user_group.all():
+        for group in request.user.user_group.all():
+            per_group = group.permission.all()
+            for per in per_group:
+                if group.object_type == object_type and str(group.object_id) == str(object_id) and per.codename == permission:
+                    return True
+    
+    return False
 
 @login_required(login_url='login')
 def projects(request):
     title = 'Projects'
-    projects = Project.objects.all()
-    phases = Phase.objects.all()
-    tasks = Task.objects.all()
+    projects = []
+    phases = []
+    tasks = []
+    project_per_add = False
+    project_per_change = False
+    project_per_delete = False
+
+    if request.user.is_superuser:
+        projects = Project.objects.all()
+        phases = Phase.objects.all()
+        tasks = Task.objects.all()
+        project_per_add = True
+        project_per_change = True
+        project_per_delete = True
+    else:
+        for permission in all_permission(request):
+            if str(permission['permission']) == 'view':
+                # Permission view project
+                if permission['object_type'] == 'project':
+                    project = Project.objects.get(id=permission['object_id'])
+                    if project not in projects:
+                        projects.append(project)
+            
+                        for phase in Phase.objects.all():
+                            # Get all phase of project
+                            if phase.project == project:
+                                phases.append(phase)
+                                
+                                for task in Task.objects.all():
+                                    if task.phase == phase:
+                                        tasks.append(task)
+                # Permission view phase
+                if permission['object_type'] == 'phase':
+                    phase = Phase.objects.get(id=permission['object_id'])
+                    if phase not in phases:
+                        phases.append(phase)
+
+                        for task in Task.objects.all():
+                            if task.phase == phase:
+                                tasks.append(task)
+                # Permission view task
+                if permission['object_type'] == 'task':
+                    task = Task.objects.get(id=permission['object_id'])
+                    if task not in tasks:
+                        tasks.append(task)
+            
+            # Permission
+            if str(permission['permission']) == 'add':
+                project_per_add = True
+            if str(permission['permission']) == 'change':
+                project_per_change = True
+            if str(permission['permission']) == 'delete':
+                project_per_delete = True
+
+    print('project_per_add', project_per_add)
+    print('project_per_change', project_per_change)
+    print('project_per_delete', project_per_delete)
 
     context = {
         'brand': brand,
@@ -26,6 +106,10 @@ def projects(request):
         'projects': projects,
         'phases': phases,
         'tasks': tasks,
+        'all_permission': all_permission(request),
+        'project_per_add': project_per_add,
+        'project_per_change': project_per_change,
+        'project_per_delete': project_per_delete,
     }
 
     return render(request, 'projects/projects.html', context=context)
@@ -42,7 +126,7 @@ def project_create(request):
         create_form = ProjectCreateForm(request.POST)
         if create_form.is_valid():
             new_project = create_form.save()
-            return redirect('phase_settings', pk_project=new_project.project_id)
+            return redirect('phase_settings', pk_project=new_project.id)
 
     context = {
         'brand': brand,
@@ -58,7 +142,7 @@ def project_create(request):
 @login_required(login_url='login')
 def project_update(request, pk_project):
     title = 'Update Project'
-    project = Project.objects.get(project_id=pk_project)
+    project = Project.objects.get(id=pk_project)
     phases = Phase.objects.filter(project=pk_project)
     project_update_form = ProjectCreateForm(instance=project)
     PhaseFormSet = inlineformset_factory(Project, Phase,
@@ -90,7 +174,7 @@ def project_update(request, pk_project):
 @login_required(login_url='login')
 def project_delete(request, pk_project):
     title = 'Delete Project'
-    project = Project.objects.get(project_id=pk_project)
+    project = Project.objects.get(id=pk_project)
 
     if request.method == 'POST':
         project.delete()
@@ -108,7 +192,7 @@ def project_delete(request, pk_project):
 def phase_settings(request, pk_project):
     title = 'Phase Settings'
     stage = 2
-    project = Project.objects.get(project_id=pk_project)
+    project = Project.objects.get(id=pk_project)
     list_phase = CustomPhase.objects.all()
 
     all_phases_formset = modelformset_factory(CustomPhase,
@@ -171,7 +255,7 @@ def phase_settings(request, pk_project):
 def phase_edit(request, pk_project):
     title = 'Phase Edit'
     stage = 3
-    project = Project.objects.get(project_id=pk_project)
+    project = Project.objects.get(id=pk_project)
     phases = Phase.objects.filter(project=project)
 
     PhaseFormSet = inlineformset_factory(Project, Phase,
@@ -193,7 +277,7 @@ def phase_edit(request, pk_project):
             else:
                 messages.add_message(
                     request, messages.WARNING, 'There is nothing to change.')
-            return redirect('phase_edit', project.project_id)
+            return redirect('phase_edit', project.id)
 
     context = {
         'brand': brand,
@@ -210,7 +294,7 @@ def phase_edit(request, pk_project):
 def task_settings(request, pk_project, pk_phase):
     title = 'Task Settings'
     stage = 4
-    project = Project.objects.get(project_id=pk_project)
+    project = Project.objects.get(id=pk_project)
     phase = Phase.objects.get(id=pk_phase)
     list_task = CustomTask.objects.all()
 
@@ -235,7 +319,7 @@ def task_settings(request, pk_project, pk_phase):
         if 'add-task-to-phase' in request.POST:
             for task_item in list_task:
                 if task_item.selected:
-                    task_exists = Task.objects.filter(
+                    task_exists = Task.objects.get(
                         task_name=task_item.task_name, phase=phase)
 
                     if not task_exists:
@@ -249,10 +333,10 @@ def task_settings(request, pk_project, pk_phase):
                             messages.add_message(request, messages.ERROR, e)
                     else:
                         messages.add_message(
-                            request, messages.ERROR, f"Task named <b> {task_exists[0].task_name} </b> \
+                            request, messages.ERROR, f"Task named <b> {task_exists.task_name} </b> \
                             already exists in table Phase. Choose another name.", extra_tags='safe')
 
-            return redirect('task_views', project.project_id, phase.id)
+            return redirect('task_views', project.id, phase.id)
 
     context = {
         'brand': brand,
@@ -271,7 +355,7 @@ def task_settings(request, pk_project, pk_phase):
 def task_views(request, pk_project, pk_phase):
     title = 'Task View'
     stage = 4
-    project = Project.objects.get(project_id=pk_project)
+    project = Project.objects.get(id=pk_project)
     phase = Phase.objects.get(id=pk_phase)
     tasks = Task.objects.filter(phase=phase)
 
@@ -290,9 +374,9 @@ def task_views(request, pk_project, pk_phase):
 def task_edits(request, pk_project, pk_phase, pk_task):
     title = 'Edit Task'
     stage = 5
-    project = Project.objects.get(project_id=pk_project)
+    project = Project.objects.get(id=pk_project)
     phase = Phase.objects.get(id=pk_phase)
-    task = Task.objects.get(task_id=pk_task, phase=phase)
+    task = Task.objects.get(id=pk_task, phase=phase)
 
     task_form = TaskCreateForm(instance=task)
     file_form = FileCreateForm(instance=task)
@@ -334,7 +418,7 @@ def task_edits(request, pk_project, pk_phase, pk_task):
                 tf.name = file_name.split('/')[-1]
                 tf.attachment = f"{settings.MEDIA_URL}{file_name}"
                 tf.url = f"{settings.MEDIA_URL}{file_name}"
-                tf.task = Task.objects.get(task_id=pk_task, phase=phase)
+                tf.task = Task.objects.get(id=pk_task, phase=phase)
                 tf.user = UserManagement.objects.get(id=request.user.id)
                 tf.save()
 
@@ -344,7 +428,7 @@ def task_edits(request, pk_project, pk_phase, pk_task):
             except Exception as err:
                 pass
 
-            return redirect('task_edits', project.project_id, phase.id, task.task_id)
+            return redirect('task_edits', project.id, phase.id, task.id)
 
     # Get attachment of Task
     task_files = TaskFiles.objects.filter(task=pk_task)
@@ -369,7 +453,7 @@ def task_edits(request, pk_project, pk_phase, pk_task):
                 print(form.errors)
 
             messages.add_message(request, messages.SUCCESS, 'Approve file successfully.')
-            return redirect('task_edits', project.project_id, phase.id, task.task_id)
+            return redirect('task_edits', project.id, phase.id, task.id)
 
     context = {
         'brand': brand,
@@ -390,13 +474,13 @@ def task_edits(request, pk_project, pk_phase, pk_task):
 @login_required(login_url='login')
 def task_delete(request, pk_project, pk_phase, pk_task):
     title = 'Delete Task'
-    project = Project.objects.get(project_id=pk_project)
+    project = Project.objects.get(id=pk_project)
     phase = Phase.objects.get(id=pk_phase)
-    task = Task.objects.get(task_id=pk_task)
+    task = Task.objects.get(id=pk_task)
 
     if request.method == 'POST':
         task.delete()
-        return redirect('task_views', project.project_id, phase.id)
+        return redirect('task_views', project.id, phase.id)
 
     context = {
         'brand': brand,

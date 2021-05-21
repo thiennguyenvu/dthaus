@@ -10,7 +10,6 @@ from accounts.models import UserManagement
 
 
 class Project(models.Model):
-    project_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=300, unique=True)
     description = models.TextField(blank=True, null=True)
     STATUS = (
@@ -80,7 +79,6 @@ class CustomPhase(models.Model):
 
 
 class Task(models.Model):
-    task_id = models.AutoField(primary_key=True)
     date_created = models.DateTimeField(auto_now_add=True)
     task_name = models.CharField(max_length=300)
     description = models.TextField(blank=True, null=True)

@@ -4,7 +4,9 @@
 {% block body %}
 <h1 style="text-align: center;">{{ title }}</h1>
 <div>
+    {% if project_per_add == True %}
     <a href="{% url 'project_create' %}">Add New Project</a>
+    {% endif %}
     {% if projects %}
     <table>
         <thead>
@@ -20,7 +22,9 @@
             <th>Progress</th>
             <th>Customers</th>
             <th>Project Manager</th>
+            {% if project_per_change == True or project_per_delete == True %}
             <th colspan="2">Permission</th>
+            {% endif %}
         </thead>
         <tbody>
             {% for item in projects %}
@@ -37,12 +41,16 @@
                 <td>{{ item.progress }}</td>
                 <td>{{ item.customer }}</td>
                 <td>{{ item.project_manager }}</td>
+                {% if project_per_change == True %}
                 <td>
-                    <a href="{% url 'project_update' item.project_id %}">Update</a>
+                    <a href="{% url 'project_update' item.id %}">Update</a>
                 </td>
+                {% endif %}
+                {% if project_per_delete == True %}
                 <td>
-                    <a href="{% url 'project_delete' item.project_id %}">Delete</a>
+                    <a href="{% url 'project_delete' item.id %}">Delete</a>
                 </td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>
@@ -62,19 +70,19 @@
             {% for project in projects %}
             <li>
                 <span><i class="fas fa-clipboard-list"></i> {{ project }} </span> <a
-                    href="{% url 'project_update' project.project_id %}">Edit Project</a>
+                    href="{% url 'project_update' project.id %}">Edit Project</a>
                 <ul>
                     {% for phase in phases %}
                     {% if phase.project == project %}
                     <li>
                         <span><i class="fas fa-list-alt"></i> {{ phase }}</span> <a
-                            href="{% url 'phase_edit' project.project_id %}">Edit Phase</a>
+                            href="{% url 'phase_edit' project.id %}">Edit Phase</a>
                         <ul>
                             {% for task in tasks %}
                             {% if task.phase == phase %}
                             <li>
                                 <span><i class="fas fa-tasks"></i> {{ task }}</span> <a
-                                    href="{% url 'task_edits' project.project_id phase.id task.task_id %}">Edit Task</a>
+                                    href="{% url 'task_edits' project.id phase.id task.id %}">Edit Task</a>
                             </li>
                             {% endif %}
                             {% endfor %}
