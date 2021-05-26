@@ -116,7 +116,7 @@ def project_create(request):
 
     for permission in all_permission(request):
         # Permission add project
-        if str(permission['permission']) == 'add':
+        if str(permission['permission']) == 'add' and permission['object_type'] == 'project':
             project_per_add = True
             break
 
@@ -168,7 +168,8 @@ def project_update(request, pk_project):
 
         # Permission change project
         if str(permission['permission']) == 'change':
-            project_per_change = True
+            if permission['object_type'] == 'project':
+                project_per_change = True
 
     project = Project.objects.get(id=pk_project)
     project_update_form = ''
@@ -225,9 +226,10 @@ def project_delete(request, pk_project):
                 if project not in projects:
                     projects.append(project)
 
-        # Permission change project
+        # Permission delete project
         if str(permission['permission']) == 'delete':
-            project_per_delete = True
+            if permission['object_type'] == 'project':
+                project_per_delete = True
 
     project = Project.objects.get(id=pk_project)
     if project in projects and project_per_delete or request.user.is_superuser:
@@ -251,52 +253,89 @@ def project_delete(request, pk_project):
 def phase_settings(request, pk_project):
     title = 'Phase Settings'
     stage = 2
+
+    projects = []
+    phase_per_change = False
+    phase_per_add = False
+    phase_per_delete = False
+    for permission in all_permission(request):
+        if str(permission['permission']) == 'view':
+            # Permission view project
+            if permission['object_type'] == 'project':
+                project = Project.objects.get(id=permission['object_id'])
+                if project not in projects:
+                    projects.append(project)
+
+        if str(permission['permission']) == 'change':
+            if permission['object_type'] == 'project':
+                phase_per_change = True
+
+        if str(permission['permission']) == 'add':
+            if permission['object_type'] == 'project':
+                phase_per_add = True
+
+        if str(permission['permission']) == 'delete':
+            if permission['object_type'] == 'project':
+                phase_per_delete = True
+
     project = Project.objects.get(id=pk_project)
-    list_phase = CustomPhase.objects.all()
-
-    all_phases_formset = modelformset_factory(CustomPhase,
-                                              form=ListPhaseForm,
-                                              can_delete=True,
-                                              )
+    list_phase = ''
     formset = ''
+    all_phases_formset = ''
 
-    if request.method == 'POST':
-        if 'save-phase-settings' in request.POST:
-            formset = all_phases_formset(data=request.POST or None)
-            if formset.has_changed():
-                if formset.is_valid():
-                    formset.save()
-                    messages.add_message(
-                        request, messages.SUCCESS, 'Phase settings updated.')
-                else:
-                    messages.add_message(
-                        request, messages.ERROR, formset.errors)
-                    print(formset.errors)
-            else:
-                messages.add_message(
-                    request, messages.WARNING, 'There is nothing to change.')
+    if project in projects:
+        list_phase = CustomPhase.objects.all()
 
-        if 'add-phase-to-project' in request.POST:
-            for phase_item in list_phase:
-                if phase_item.selected:
-                    phase_exists = Phase.objects.filter(
-                        name=phase_item.phase_name, project=project)
-                    # Check phase name exist in table Phase of Project
+        all_phases_formset = modelformset_factory(CustomPhase,
+                                                form=ListPhaseForm,
+                                                can_delete=True,
+                                                )
 
-                    if not phase_exists:
-                        new_phase = Phase(
-                            name=phase_item.phase_name, project=project)
-                        try:
-                            new_phase.save()
-                            messages.add_message(
-                                request, messages.SUCCESS, f"Phase {new_phase} added.")
-                        except Exception as e:
-                            messages.add_message(request, messages.ERROR, e)
+
+        if request.method == 'POST':
+            if 'save-phase-settings' in request.POST:
+                formset = all_phases_formset(data=request.POST or None)
+                if formset.has_changed():
+                    if formset.is_valid():
+                        formset.save()
+                        messages.add_message(
+                            request, messages.SUCCESS, 'Phase settings updated.')
                     else:
                         messages.add_message(
-                            request, messages.ERROR, f"Exists phase: {phase_exists}. Choose another name.")
+                            request, messages.ERROR, formset.errors)
+                        print(formset.errors)
+                else:
+                    messages.add_message(
+                        request, messages.WARNING, 'There is nothing to change.')
 
-            return redirect('phase_edit', pk_project=pk_project)
+            if 'add-phase-to-project' in request.POST:
+                for phase_item in list_phase:
+                    if phase_item.selected:
+                        phase_exists = Phase.objects.filter(
+                            name=phase_item.phase_name, project=project)
+                        # Check phase name exist in table Phase of Project
+
+                        if not phase_exists:
+                            new_phase = Phase(
+                                name=phase_item.phase_name, project=project)
+                            try:
+                                new_phase.save()
+                                messages.add_message(
+                                    request, messages.SUCCESS, f"Phase {new_phase} added.")
+                            except Exception as e:
+                                messages.add_message(request, messages.ERROR, e)
+                        else:
+                            messages.add_message(
+                                request, messages.ERROR, f"Exists phase: {phase_exists}. Choose another name.")
+
+                return redirect('phase_edit', pk_project=pk_project)
+        
+    else:
+        messages.add_message(request, messages.ERROR,
+                             "You don't have permissions for this action.")
+        return redirect("projects")
+
+    
 
     context = {
         'brand': brand,
@@ -306,6 +345,9 @@ def phase_settings(request, pk_project):
         'project': project,
         'all_phases': all_phases_formset,
         'formset': formset,
+        'phase_per_add': phase_per_add,
+        'phase_per_change': phase_per_change,
+        'phase_per_delete': phase_per_delete,
     }
     return render(request, 'projects/phase-settings.html', context=context)
 
@@ -314,29 +356,68 @@ def phase_settings(request, pk_project):
 def phase_edit(request, pk_project):
     title = 'Phase Edit'
     stage = 3
+    project_per_delete = False
+
+    projects = []
+    phase_per = []
+    for permission in all_permission(request):
+        if str(permission['permission']) == 'view':
+            # Permission view project
+            if permission['object_type'] == 'project':
+                project = Project.objects.get(id=permission['object_id'])
+                if project not in projects:
+                    projects.append(project)
+
+            # Permission view phase
+            if permission['object_type'] == 'phase':
+                phase = Phase.objects.get(id=permission['object_id'])
+                if phase not in phase_per:
+                    phase_per.append(phase)
+
+        # Permission change project
+        if str(permission['permission']) == 'change':
+            project_per_delete = True
+
+
     project = Project.objects.get(id=pk_project)
-    phases = Phase.objects.filter(project=project)
+    phases = []
+    phase_form = ''
+    
+    if project in projects or len(phase_per) != 0:
+        # Check if project owner or admin
+        if project_per_delete or request.user.is_superuser:
+            phases = Phase.objects.filter(project=project)
+        else:
+            for phase in phase_per:
+                if phase.project == project:
+                    phases.append(phase)
+        print(phase_per)
+        
+        PhaseFormSet = inlineformset_factory(Project, Phase,
+                                            PhaseCreateForm,
+                                            fields='__all__',
+                                            max_num=len(phases))
+        phase_form = PhaseFormSet(instance=project)
 
-    PhaseFormSet = inlineformset_factory(Project, Phase,
-                                         PhaseCreateForm,
-                                         fields='__all__',
-                                         max_num=len(phases))
-    phase_form = PhaseFormSet(instance=project)
-
-    if request.method == 'POST':
-        if 'update-phase' in request.POST:
-            form = PhaseFormSet(request.POST or None, instance=project)
-            if form.has_changed():
-                if form.is_valid():
-                    form.save()
-                    messages.add_message(
-                        request, messages.SUCCESS, 'Phase updated successfully.')
+        if request.method == 'POST':
+            if 'update-phase' in request.POST:
+                form = PhaseFormSet(request.POST or None, instance=project)
+                if form.has_changed():
+                    if form.is_valid():
+                        form.save()
+                        messages.add_message(
+                            request, messages.SUCCESS, 'Phase updated successfully.')
+                    else:
+                        messages.add_message(request, messages.ERROR, form.error)
                 else:
-                    messages.add_message(request, messages.ERROR, form.error)
-            else:
-                messages.add_message(
-                    request, messages.WARNING, 'There is nothing to change.')
-            return redirect('phase_edit', project.id)
+                    messages.add_message(
+                        request, messages.WARNING, 'There is nothing to change.')
+                return redirect('phase_edit', project.id)
+
+    else:
+        messages.add_message(request, messages.ERROR,
+                             "You don't have permissions for this action.")
+        return redirect("projects")
 
     context = {
         'brand': brand,
@@ -379,11 +460,11 @@ def task_settings(request, pk_project, pk_phase):
             for task_item in list_task:
                 if task_item.selected:
                     task_exists = Task.objects.get(
-                        task_name=task_item.task_name, phase=phase)
+                        name=task_item.task_name, phase=phase)
 
                     if not task_exists:
                         new_task = Task(
-                            task_name=task_item.task_name, phase=phase)
+                            name=task_item.task_name, phase=phase)
                         try:
                             new_task.save()
                             messages.add_message(
@@ -392,7 +473,7 @@ def task_settings(request, pk_project, pk_phase):
                             messages.add_message(request, messages.ERROR, e)
                     else:
                         messages.add_message(
-                            request, messages.ERROR, f"Task named <b> {task_exists.task_name} </b> \
+                            request, messages.ERROR, f"Task named <b> {task_exists.name} </b> \
                             already exists in table Phase. Choose another name.", extra_tags='safe')
 
             return redirect('task_views', project.id, phase.id)
