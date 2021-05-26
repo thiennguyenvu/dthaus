@@ -283,7 +283,7 @@ def phase_settings(request, pk_project):
     formset = ''
     all_phases_formset = ''
 
-    if project in projects:
+    if project in projects or request.user.is_superuser:
         list_phase = CustomPhase.objects.all()
 
         all_phases_formset = modelformset_factory(CustomPhase,
@@ -383,7 +383,7 @@ def phase_edit(request, pk_project):
     phases = []
     phase_form = ''
     
-    if project in projects or len(phase_per) != 0:
+    if project in projects or request.user.is_superuser:
         # Check if project owner or admin
         if project_per_delete or request.user.is_superuser:
             phases = Phase.objects.filter(project=project)
