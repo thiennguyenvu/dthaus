@@ -2,14 +2,16 @@
 {% block body %}
 {% include 'projects/horizontal-timeline.html' %}
 <h1 style="text-align: center;">{{ title }}</h1>
-<div>Select <span class="text-highlight">phases</span> you want to add into <span class="text-highlight">project</span> <b>{{ project.name }}</b>.
-    {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-        <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+<div>Select <span class="text-highlight">phases</span> you want to add into <span class="text-highlight">project</span>
+    <b>{{ project.name }}</b>.
+
     <form method="POST">
         {% csrf_token %}
         {{ all_phases.management_form }}
@@ -17,7 +19,9 @@
             <thead>
                 <th><input type="checkbox" name="phase-all" id="phase-all" checked />&nbsp;Select</th>
                 <th>Phase Name</th>
+                {% if phase_per_delete %}
                 <th><i class="fas fa-trash-alt"></i> Delete</th>
+                {% endif %}
             </thead>
             <tbody>
                 {% for phase in all_phases %}
@@ -28,18 +32,27 @@
                 <tr>
                     <td class="phase-selected">{{ phase.selected }}</td>
                     <td>{{ phase.phase_name }}</td>
-                    <td class="phase-delete">{{ phase.DELETE }}</td>
+                    {% if phase_per_delete %}
+                    <td class="phase-delete">{{ phase.DELETE }}</td>   
+                    {% endif %}     
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        {% if phase_per_change %}
         <input type="submit" name="save-phase-settings" id="save-phase-settings" value="Save Phase Settings">
+        {% endif %}
     </form>
+
+    {% if phase_per_add %}
     <form method="POST">
         {% csrf_token %}
-        <input type="submit" name="add-phase-to-project" id="add-phase-to-project" value="Add Phase to {{ project.name }}">
+        <input type="submit" name="add-phase-to-project" id="add-phase-to-project"
+            value="Add Phase to {{ project.name }}">
     </form>
-    {% endblock body %}
+    {% endif %}
+
+{% endblock body %}
     {% block script %}
     <script>
         jQuery(function ($) {

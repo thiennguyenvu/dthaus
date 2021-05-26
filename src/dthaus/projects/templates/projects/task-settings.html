@@ -28,7 +28,7 @@
                 {% endfor %}
                 <tr>
                     <td class="task-selected">{{ task.selected }}</td>
-                    <td>{{ task.name }}</td>
+                    <td>{{ task.task_name }}</td>
                     <td class="task-delete">{{ task.DELETE }}</td>
                 </tr>
                 {% endfor %}
@@ -39,7 +39,7 @@
     </form>
     <form method="post">
         {% csrf_token %}
-        <input type="submit" name="add-task-to-phase" id="add-task-to-phase" value="Add Task to {{ phase.phase_name }}">
+        <input type="submit" name="add-task-to-phase" id="add-task-to-phase" value="Add Task to {{ phase.name }}">
     </form>
 </div>
 {% endblock body %}
