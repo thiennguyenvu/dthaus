@@ -4,9 +4,7 @@
 <form action="" method="POST">
     {% csrf_token %}
     {{ project_update_form }}
-    {% for item in phase_form %}
-        <p>{{ item }}</p>
-    {% endfor %}
+    <br>
     <a href="{% url 'projects' %}">Cancel</a>
     <button type="submit">Update Project</button>
 </form>

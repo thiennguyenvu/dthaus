@@ -23,5 +23,5 @@ urlpatterns = [
     path('project-<str:pk_project>/phase-<str:pk_phase>/task-<str:pk_task>/',
          views.task_edits, name='task_edits'),
     path('project-<str:pk_project>/phase-<str:pk_phase>/task-<str:pk_task>/delete/',
-         views.task_delete, name='task_delete')
+         views.task_delete, name='task_delete'),
 ]
