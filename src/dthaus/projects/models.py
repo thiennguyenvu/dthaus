@@ -71,6 +71,11 @@ class Phase(models.Model):
     phase_finished = models.BooleanField(default=False)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
 
+    def save(self, *args, **kwargs):
+        if self.due_date < self.start_date:
+            self.due_date = self.start_date
+        super(Phase, self).save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
@@ -110,6 +115,13 @@ class Task(models.Model):
     task_finished = models.BooleanField(default=False)
     date_finished = models.DateTimeField(null=True)
     phase = models.ForeignKey(Phase, on_delete=models.CASCADE, null=True)
+
+    def save(self, *args, **kwargs):
+        if self.due_date_upload < self.start_date_upload:
+            self.due_date_upload = self.start_date_upload
+        if self.due_date_approve < self.start_date_approve:
+            self.due_date_approve = self.start_date_approve
+        super(Task, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name

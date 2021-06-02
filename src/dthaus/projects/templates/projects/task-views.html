@@ -3,11 +3,13 @@
 {% include 'projects/horizontal-timeline.html' %}
 <h1 style="text-align: center;">{{ title }}</h1>
 <div>
+    {% if task_per_add %}
     <a href="{% url 'task_settings' project.id phase.id %}">Add more Task</a>
+    {% endif %}
     <div class="col-md-12 row">
         <div class="col-md-4">
             <div>
-                Project: <b>{{ project.name }}</b> - Phase: <b>{{ phase.phase_name }}</b>
+                Project: <b>{{ project.name }}</b> - Phase: <b>{{ phase.name }}</b>
             </div>
         </div>
         <div class="col-md-8">
@@ -34,7 +36,10 @@
                     <th>Task Name</th>
                     <th>Status</th>
                     <th>Task Settings</th>
+
+                    {% if task_delete %}
                     <th></th>
+                    {% endif %}
                 </thead>
                 <tbody>
                     {% for task in tasks %}
@@ -50,6 +55,8 @@
                         <td>
                             <a href="{% url 'task_delete' project.id phase.id task.id %}">Delete</a>
                         </td>
+                        
+                        <h1>{{ project.id }}-{{ phase.id }}-{{ task.id }}</h1>
                     </tr>
                     {% endfor %}
                 </tbody>

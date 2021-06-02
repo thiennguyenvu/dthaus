@@ -3,7 +3,9 @@
 {% include 'projects/horizontal-timeline.html' %}
 <h1 style="text-align: center;">{{ title }}</h1>
 <div>
+    {% if phase_per_add %}
     <a href="{% url 'phase_settings' project.id %}">Add more Phase</a>
+    {% endif %}
     <div class="col-md-12 row">
         <div class="col-md-4">
             <div>Project: <b>{{ project.name }}</b></div>
@@ -22,11 +24,47 @@
     {% endif %}
 
     <div>
+        <table>
+            <thead>
+                <th>ID</th>
+                <th>Phase Name</th>
+                <th>Description</th>
+                <th>Start Date</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Finished</th>
+                <th>Task View</th>
+            </thead>
+            <tbody>
+                {% for phase in phases %}
+                <tr>
+                    <td>{{ phase.id }}</td>
+                    <td>{{ phase.name }}</td>
+                    <td>{{ phase.description }}</td>
+                    <td>{{ phase.start_date|date:"d-M-Y" }}</td>
+                    <td>{{ phase.due_date|date:"d-M-Y" }}</td>
+                    <td>{{ phase.phase_status }}</td>
+                    <td>{{ phase.phase_finished }}</td>
+                    <td>
+                        <a href="{% url 'task_views' project.id phase.id %}">View Details</a>
+                    </td>
+                </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+    </div>
+
+    {% if request.user.is_superuser or phase_change %}
+    <div>
+        <div>You have permission to change phase below:</div>
         <form method="POST">
             {% csrf_token %}
             {{ phase_form.management_form }}
             <table>
                 <thead>
+                    <th>ID</th>
                     <th>Phase Name</th>
                     <th>Description</th>
                     <th>Start Date</th>
@@ -34,7 +72,9 @@
                     <th>Status</th>
                     <th>Finished</th>
                     <th>Task View</th>
+                    {% if phase_per_delete %}
                     <th><i class="fas fa-trash-alt"></i> Delete</th>
+                    {% endif %}
                 </thead>
                 <tbody>
                     {% for phase in phase_form %}
@@ -42,6 +82,7 @@
                     {{hidden}}
                     {% endfor %}
                     <tr>
+                        <td>{{ phase.id.value }}</td>
                         <td>{{ phase.name }}</td>
                         <td>{{ phase.description }}</td>
                         <td>{{ phase.start_date }}</td>
@@ -51,14 +92,20 @@
                         <td>
                             <a href="{% url 'task_views' project.id phase.id.value %}">View Details</a>
                         </td>
+                        {% if phase_per_delete %}
                         <td>{{ phase.DELETE }}</td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+
+            {% if phase_change %}
             <input type="submit" name="update-phase" value="Update Phase">
+            {% endif %}
         </form>
     </div>
+    {% endif %}
 </div>
 {% endblock body %}
 {% block script %}

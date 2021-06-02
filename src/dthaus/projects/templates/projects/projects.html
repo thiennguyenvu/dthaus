@@ -13,11 +13,11 @@
         {% endfor %}
     </ul>
     {% endif %}
-    
+
     {% if project_per_add == True %}
     <a href="{% url 'project_create' %}">Add New Project</a>
     {% endif %}
-    {% if projects %}
+    {% if projects or phases or tasks %}
     <table>
         <thead>
             <th>Name</th>
@@ -68,9 +68,8 @@
     {% else %}
     <div>
         <p>This content isn't available at the moment</p>
-        <p>When this happens, it's usually because the owner only shared it with a small group of people or changed who
-            can see it,
-            or it's been deleted.</p>
+        <p>When this happens, it's usually because the owner only shared it with a small group of people or changed who can see it, or it's been deleted.
+        </p>
     </div>
     {% endif %}
 </div>

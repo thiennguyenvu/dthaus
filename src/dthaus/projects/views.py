@@ -72,19 +72,32 @@ def projects(request):
                             phases.append(phase)
                             for task in Task.objects.filter(phase=phase):
                                 tasks.append(task)
+
                 # Permission view phase
                 if permission['object_type'] == 'phase':
                     phase = Phase.objects.get(id=permission['object_id'])
                     if phase not in phases:
                         phases.append(phase)
+                        project = phase.project
+
+                        if project not in projects:
+                            projects.append(project)
 
                         for task in Task.objects.filter(phase=phase):
                             tasks.append(task)
+
                 # Permission view task
                 if permission['object_type'] == 'task':
                     task = Task.objects.get(id=permission['object_id'])
                     if task not in tasks:
                         tasks.append(task)
+                        phase = task.phase
+                        project = phase.project
+
+                        if phase not in phases:
+                            phases.append(phase)
+                        if project not in projects:
+                            projects.append(project)
 
             # Permission
             if str(permission['permission']) == 'add':
@@ -258,25 +271,31 @@ def phase_settings(request, pk_project):
     phase_per_change = False
     phase_per_add = False
     phase_per_delete = False
-    for permission in all_permission(request):
-        if str(permission['permission']) == 'view':
-            # Permission view project
-            if permission['object_type'] == 'project':
-                project = Project.objects.get(id=permission['object_id'])
-                if project not in projects:
-                    projects.append(project)
 
-        if str(permission['permission']) == 'change':
-            if permission['object_type'] == 'project':
-                phase_per_change = True
+    if request.user.is_superuser:
+        phase_per_change = True
+        phase_per_add = True
+        phase_per_delete = True
+    else:
+        for permission in all_permission(request):
+            if str(permission['permission']) == 'view':
+                # Permission view project
+                if permission['object_type'] == 'project':
+                    project = Project.objects.get(id=permission['object_id'])
+                    if project not in projects:
+                        projects.append(project)
 
-        if str(permission['permission']) == 'add':
-            if permission['object_type'] == 'project':
-                phase_per_add = True
+            if str(permission['permission']) == 'change':
+                if permission['object_type'] == 'project' or permission['object_type'] == 'phase':
+                    phase_per_change = True
 
-        if str(permission['permission']) == 'delete':
-            if permission['object_type'] == 'project':
-                phase_per_delete = True
+            if str(permission['permission']) == 'add':
+                if permission['object_type'] == 'project' or permission['object_type'] == 'phase':
+                    phase_per_add = True
+
+            if str(permission['permission']) == 'delete':
+                if permission['object_type'] == 'project' or permission['object_type'] == 'phase':
+                    phase_per_delete = True
 
     project = Project.objects.get(id=pk_project)
     list_phase = ''
@@ -356,48 +375,72 @@ def phase_settings(request, pk_project):
 def phase_edit(request, pk_project):
     title = 'Phase Edit'
     stage = 3
-    project_per_delete = False
+    phase_per_add = False
+    phase_per_delete = False
 
     projects = []
-    phase_per = []
-    for permission in all_permission(request):
-        if str(permission['permission']) == 'view':
-            # Permission view project
-            if permission['object_type'] == 'project':
-                project = Project.objects.get(id=permission['object_id'])
-                if project not in projects:
-                    projects.append(project)
-
-            # Permission view phase
-            if permission['object_type'] == 'phase':
-                phase = Phase.objects.get(id=permission['object_id'])
-                if phase not in phase_per:
-                    phase_per.append(phase)
-
-        # Permission change project
-        if str(permission['permission']) == 'change':
-            project_per_delete = True
-
-
-    project = Project.objects.get(id=pk_project)
+    phase_view = []
+    phase_change = [] # Need permission change to each phase
     phases = []
     phase_form = ''
-    
+    project = Project.objects.get(id=pk_project)
+    if request.user.is_superuser:
+        phase_per_add = True
+        phase_per_delete = True
+        phases = Phase.objects.filter(project=project)
+        phase_change = phases
+    else:
+        for permission in all_permission(request):
+            if str(permission['permission']) == 'view':
+                # Permission view project
+                if permission['object_type'] == 'project':
+                    _project = Project.objects.get(id=permission['object_id'])
+                    if _project not in projects:
+                        projects.append(_project)
+
+                # Permission view phase
+                if permission['object_type'] == 'phase':
+                    phase = Phase.objects.get(id=permission['object_id'])
+                    if phase not in phase_view:
+                        phase_view.append(phase)
+                        project = phase.project
+                        
+                        if project not in projects:
+                            projects.append(project)
+
+            # Permission add phase
+            if str(permission['permission']) == 'add':
+                if permission['object_type'] == 'project' or permission['object_type'] == 'phase':
+                    phase_per_add = True
+
+            # Permission change phase
+            if str(permission['permission']) == 'change':
+                if permission['object_type'] == 'project':
+                    phase_change = Phase.objects.filter(project=project)
+                if permission['object_type'] == 'phase':
+                    phase = Phase.objects.get(id=permission['object_id'])
+                    if phase not in phase_change:
+                        phase_change.append(phase)
+
+            # Permission delete phase
+            if str(permission['permission']) == 'delete':
+                if permission['object_type'] == 'project' or permission['object_type'] == 'phase':
+                    phase_per_delete = True
+
+    # print('phase_change', phase_change)
+
     if project in projects or request.user.is_superuser:
         # Check if project owner or admin
-        if project_per_delete or request.user.is_superuser:
-            phases = Phase.objects.filter(project=project)
-        else:
-            for phase in phase_per:
-                if phase.project == project:
-                    phases.append(phase)
-        print(phase_per)
-        
+        for phase in phase_view:
+            if phase.project == project:
+                phases.append(phase)
+        # print(phases)
+
         PhaseFormSet = inlineformset_factory(Project, Phase,
                                             PhaseCreateForm,
                                             fields='__all__',
-                                            max_num=len(phases))
-        phase_form = PhaseFormSet(instance=project)
+                                            max_num=len(phase_change))
+        phase_form = PhaseFormSet(instance=project, queryset=Phase.objects.filter(id__in=[phase.id for phase in phase_change]))
 
         if request.method == 'POST':
             if 'update-phase' in request.POST:
@@ -426,6 +469,9 @@ def phase_edit(request, pk_project):
         'project': project,
         'phases': phases,
         'phase_form': phase_form,
+        'phase_per_add': phase_per_add,
+        'phase_per_delete': phase_per_delete,
+        'phase_change': phase_change,
     }
     return render(request, 'projects/phase-edit.html', context=context)
 
@@ -495,9 +541,88 @@ def task_settings(request, pk_project, pk_phase):
 def task_views(request, pk_project, pk_phase):
     title = 'Task View'
     stage = 4
+    task_per_add = False
+    task_delete = []
+
+    projects = []
+    phases = []
+    tasks = []
+    task_change = [] # Need permission change to each phase
+
     project = Project.objects.get(id=pk_project)
     phase = Phase.objects.get(id=pk_phase)
-    tasks = Task.objects.filter(phase=phase)
+
+    if request.user.is_superuser:
+        task_per_add = True
+        tasks = Task.objects.filter(phase=phase)
+        task_change = tasks
+        task_delete = tasks
+    else:
+        for permission in all_permission(request):
+            if str(permission['permission']) == 'view':
+                # Permission view project
+                if permission['object_type'] == 'project':
+                    _project = Project.objects.get(id=permission['object_id'])
+                    if _project not in projects:
+                        projects.append(_project)
+
+                        for _phase in Phase.objects.filter(project=project):
+                            phases.append(_phase)
+                            for _task in Task.objects.filter(phase=_phase):
+                                tasks.append(_task)
+                                print('task', _task)
+
+                # Permission view phase
+                if permission['object_type'] == 'phase':
+                    _phase = Phase.objects.get(id=permission['object_id'])
+                    if _phase not in phases:
+                        phases.append(_phase)
+                        
+                        for task in Task.objects.filter(phase=_phase):
+                            tasks.append(task)
+                
+                # Permission view task
+                if permission['object_type'] == 'task':
+                    _task = Task.objects.get(id=permission['object_id'])
+                    if _task not in tasks:
+                        tasks.append(_task)
+            
+            # Permission add task
+            if str(permission['permission']) == 'add':
+                if permission['object_type'] == 'project' or permission['object_type'] == 'phase':
+                    task_per_add = True
+
+            # Permission change task
+            if str(permission['permission']) == 'change':
+                if permission['object_type'] == 'project' or permission['object_type'] == 'phase':
+                    task_change = Task.objects.filter(phase=phase)
+                if permission['object_type'] == 'task':
+                    _task = Task.objects.get(id=permission['object_id'])
+                    if _task not in task_change:
+                        task_change.append(_task)
+
+            # Permission delete task
+            if str(permission['permission']) == 'delete':
+                if permission['object_type'] == 'project' or permission['object_type'] == 'phase':
+                    task_delete = Task.objects.filter(phase=phase)
+                if permission['object_type'] == 'task':
+                    _task = Task.objects.get(id=permission['object_id'])
+                    if _task not in task_delete:
+                        task_delete.append(_task)
+
+    print('task', tasks)
+    print('task_add', task_per_add)
+    print('task_change', task_change)
+    print('task_delete', task_delete)
+    print('project', project.id)
+    print('phase', phase.id)
+
+    if tasks or request.user.is_superuser:
+        pass
+    else:
+        messages.add_message(request, messages.ERROR,
+                             "You don't have permissions for this action.")
+        return redirect("projects")
 
     context = {
         'brand': brand,
@@ -506,6 +631,9 @@ def task_views(request, pk_project, pk_phase):
         'project': project,
         'phase': phase,
         'tasks': tasks,
+        'task_per_add': task_per_add,
+        'task_delete': task_delete,
+        'task_change': task_change,
     }
     return render(request, 'projects/task-views.html', context=context)
 
@@ -542,10 +670,11 @@ def task_edits(request, pk_project, pk_phase, pk_task):
 
             # Handle file form
             try:
+                print(request.POST)
                 uploaded_file = request.FILES.get('attachment')
                 project_name = project.name.replace(' ', '-')
-                phase_name = phase.phase_name.replace(' ', '-')
-                task_name = task.task_name.replace(' ', '-')
+                phase_name = phase.name.replace(' ', '-')
+                task_name = task.name.replace(' ', '-')
                 location = f"{project_name}/{phase_name}/{task_name}"
 
                 file_name = default_storage.save(
@@ -566,7 +695,7 @@ def task_edits(request, pk_project, pk_phase, pk_task):
                     request, messages.SUCCESS, 'File uploaded.')
 
             except Exception as err:
-                pass
+                print(err)
 
             return redirect('task_edits', project.id, phase.id, task.id)
 
@@ -579,7 +708,7 @@ def task_edits(request, pk_project, pk_phase, pk_task):
                                          fields='__all__',
                                          max_num=len(task_files))
     approve_form = file_formset(instance=task)
-    if request.method == 'POST':
+    if request.method == 'POST':        
         if 'btn-approve-file' in request.POST:
             form = file_formset(request.POST, instance=task)
 
@@ -595,6 +724,7 @@ def task_edits(request, pk_project, pk_phase, pk_task):
             messages.add_message(request, messages.SUCCESS,
                                  'Approve file successfully.')
             return redirect('task_edits', project.id, phase.id, task.id)
+        print(request.POST)
 
     context = {
         'brand': brand,
@@ -626,8 +756,8 @@ def task_delete(request, pk_project, pk_phase, pk_task):
     context = {
         'brand': brand,
         'title': title,
-        'project': project,
-        'phase': phase,
+        # 'project': project,
+        # 'phase': phase,
         'task': task,
     }
     return render(request, 'projects/task-delete.html', context=context)
