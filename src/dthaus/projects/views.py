@@ -330,8 +330,11 @@ def phase_settings(request, pk_project):
             if 'add-phase-to-project' in request.POST:
                 for phase_item in list_phase:
                     if phase_item.selected:
-                        phase_exists = Phase.objects.filter(
-                            name=phase_item.phase_name, project=project)
+                        try:
+                            phase_exists = Phase.objects.get(
+                                name=phase_item.phase_name, project=project)
+                        except:
+                            phase_exists = None
                         # Check phase name exist in table Phase of Project
 
                         if not phase_exists:
@@ -505,8 +508,11 @@ def task_settings(request, pk_project, pk_phase):
         if 'add-task-to-phase' in request.POST:
             for task_item in list_task:
                 if task_item.selected:
-                    task_exists = Task.objects.get(
-                        name=task_item.task_name, phase=phase)
+                    try:
+                        task_exists = Task.objects.get(
+                            name=task_item.task_name, phase=phase)
+                    except:
+                        task_exists = None
 
                     if not task_exists:
                         new_task = Task(
