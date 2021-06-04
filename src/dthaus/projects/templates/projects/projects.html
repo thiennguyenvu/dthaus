@@ -32,7 +32,7 @@
             <th>Progress</th>
             <th>Customers</th>
             <th>Project Manager</th>
-            {% if project_per_change == True or project_per_delete == True %}
+            {% if project_per_change or project_per_delete %}
             <th colspan="2">Permission</th>
             {% endif %}
         </thead>
@@ -51,12 +51,12 @@
                 <td>{{ item.progress }}</td>
                 <td>{{ item.customer }}</td>
                 <td>{{ item.project_manager }}</td>
-                {% if project_per_change == True %}
+                {% if project_per_change %}
                 <td>
                     <a href="{% url 'project_update' item.id %}">Update</a>
                 </td>
                 {% endif %}
-                {% if project_per_delete == True %}
+                {% if project_per_delete %}
                 <td>
                     <a href="{% url 'project_delete' item.id %}">Delete</a>
                 </td>
