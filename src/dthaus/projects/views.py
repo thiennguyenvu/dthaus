@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.forms import inlineformset_factory, modelformset_factory
 from django.conf import settings
@@ -616,12 +616,14 @@ def task_views(request, pk_project, pk_phase):
                     if _task not in task_delete:
                         task_delete.append(_task)
 
-    print('task', tasks)
+    print('tasks', tasks)
     print('task_add', task_per_add)
     print('task_change', task_change)
     print('task_delete', task_delete)
     print('project', project.id)
     print('phase', phase.id)
+    for task in tasks:
+        print(task.id)
 
     if tasks or request.user.is_superuser:
         pass
@@ -648,71 +650,142 @@ def task_views(request, pk_project, pk_phase):
 def task_edits(request, pk_project, pk_phase, pk_task):
     title = 'Edit Task'
     stage = 5
+
+    task_per_add = False
+    task_per_change = False
+    task_change = []
+    task_delete = []
+
+    projects = []
+    phases = []
+    tasks = []
+
     project = Project.objects.get(id=pk_project)
     phase = Phase.objects.get(id=pk_phase)
     task = Task.objects.get(id=pk_task, phase=phase)
 
-    task_form = TaskCreateForm(instance=task)
-    file_form = FileCreateForm(instance=task)
+    if request.user.is_superuser:
+        task_per_add = True
+        task_per_change = True
+        tasks = Task.objects.filter(phase=phase)
+        task_change = tasks
+        task_delete = tasks
+    else:
+        for permission in all_permission(request):
+            if str(permission['permission']) == 'view':
+                # Permission view project
+                if permission['object_type'] == 'project':
+                    _project = Project.objects.get(id=permission['object_id'])
+                    if _project not in projects:
+                        projects.append(_project)
 
-    if request.method == 'POST':
-        if 'update-task' in request.POST:
-            form = TaskCreateForm(request.POST or None, instance=task)
-            f_form = FileCreateForm(request.FILES, instance=task)
-            tf = TaskFiles()
+                    for _phase in Phase.objects.filter(project=project):
+                        if _phase not in phases:
+                            phases.append(_phase)
+                        for _task in Task.objects.filter(phase=phase):
+                            if _task not in tasks:
+                                tasks.append(_task)
+                # Permission view phase                
+                if permission['object_type'] == 'phase':
+                    _phase = Phase.objects.get(id=permission['object_id'])
+                    if _phase not in phases:
+                        phases.append(_phase)
 
-            # Handle task form
-            if form.has_changed():
-                if form.is_valid():
-                    f = form.save(commit=False)
-                    if f.task_finished == True:
-                        f.date_finished = timezone.now()
-                    f.save()
+                        for _task in Task.objects.filter(phase=_phase):
+                            tasks.append(_task)
+
+                # Permission view task
+                if permission['object_type'] == 'task':
+                    _task = Task.objects.get(id=permission['object_id'])
+                    if _task not in tasks:
+                        tasks.append(_task)
+            
+            # Permission add task
+            if str(permission['permission']) == 'add':
+                task_per_add = True
+
+            # Permission change task
+            if str(permission['permission']) == 'change':
+                if permission['object_type'] == 'project' or permission['object_type'] == 'phase':
+                    task_change = Task.objects.filter(phase=phase)
+                if permission['object_type'] == 'task':
+                    _task = Task.objects.get(id=permission['object_id'])
+                    if _task not in task_change:
+                        task_change.append(_task)
+
+            # Permission delete task
+            if str(permission['permission']) == 'delete':
+                if permission['object_type'] == 'project' or permission['object_type'] == 'phase':
+                    task_delete = Task.objects.filter(phase=phase)
+                if permission['object_type'] == 'task':
+                    _task = Task.objects.get(id=permission['object_id'])
+                    if _task not in task_delete:
+                        task_delete.append(_task)
+
+    task_form = ''
+    file_form = ''
+    if task in task_change:
+        task_per_change = True
+        task_form = TaskCreateForm(instance=task)
+        file_form = FileCreateForm(instance=task)
+
+        if request.method == 'POST':
+            if 'update-task' in request.POST:
+                form = TaskCreateForm(request.POST or None, instance=task)
+                tf = TaskFiles()
+
+                # Handle task form
+                if form.has_changed():
+                    if form.is_valid():
+                        f = form.save(commit=False)
+                        if f.task_finished == True:
+                            f.date_finished = timezone.now()
+                        f.save()
+
+                        messages.add_message(
+                            request, messages.SUCCESS, 'Task updated successfully.')
+                    else:
+                        messages.add_message(request, messages.ERROR, form.errors)
+
+                # Handle file form
+                try:
+                    print(request.POST)
+                    uploaded_file = request.FILES.get('attachment')
+                    project_name = project.name.replace(' ', '-')
+                    phase_name = phase.name.replace(' ', '-')
+                    task_name = task.name.replace(' ', '-')
+                    location = f"{project_name}/{phase_name}/{task_name}"
+
+                    file_name = default_storage.save(
+                        f"{location}/{uploaded_file.name}", uploaded_file)
+                    print('file_name', file_name)
+                    file_url = default_storage.url(
+                        f"{location}/{uploaded_file.name}")
+                    print('file_url', file_url)
+
+                    tf.name = file_name.split('/')[-1]
+                    tf.attachment = f"{settings.MEDIA_URL}{file_name}"
+                    tf.url = f"{settings.MEDIA_URL}{file_name}"
+                    tf.task = Task.objects.get(id=pk_task, phase=phase)
+                    tf.user = UserManagement.objects.get(id=request.user.id)
+                    tf.save()
 
                     messages.add_message(
-                        request, messages.SUCCESS, 'Task updated successfully.')
-                else:
-                    messages.add_message(request, messages.ERROR, form.errors)
+                        request, messages.SUCCESS, 'File uploaded.')
 
-            # Handle file form
-            try:
-                print(request.POST)
-                uploaded_file = request.FILES.get('attachment')
-                project_name = project.name.replace(' ', '-')
-                phase_name = phase.name.replace(' ', '-')
-                task_name = task.name.replace(' ', '-')
-                location = f"{project_name}/{phase_name}/{task_name}"
+                except Exception as err:
+                    print(err)
 
-                file_name = default_storage.save(
-                    f"{location}/{uploaded_file.name}", uploaded_file)
-                print('file_name', file_name)
-                file_url = default_storage.url(
-                    f"{location}/{uploaded_file.name}")
-                print('file_url', file_url)
-
-                tf.name = file_name.split('/')[-1]
-                tf.attachment = f"{settings.MEDIA_URL}{file_name}"
-                tf.url = f"{settings.MEDIA_URL}{file_name}"
-                tf.task = Task.objects.get(id=pk_task, phase=phase)
-                tf.user = UserManagement.objects.get(id=request.user.id)
-                tf.save()
-
-                messages.add_message(
-                    request, messages.SUCCESS, 'File uploaded.')
-
-            except Exception as err:
-                print(err)
-
-            return redirect('task_edits', project.id, phase.id, task.id)
+                return redirect('task_edits', project.id, phase.id, task.id)
 
     # Get attachment of Task
     task_files = TaskFiles.objects.filter(task=pk_task)
     last_file = task_files[len(task_files)-1] if len(task_files) > 0 else 0
 
     file_formset = inlineformset_factory(Task, TaskFiles,
-                                         FileApproveForm,
-                                         fields='__all__',
-                                         max_num=len(task_files))
+                                        FileApproveForm,
+                                        fields='__all__',
+                                        max_num=len(task_files))
     approve_form = file_formset(instance=task)
     if request.method == 'POST':        
         if 'btn-approve-file' in request.POST:
@@ -728,7 +801,7 @@ def task_edits(request, pk_project, pk_phase, pk_task):
                 print(form.errors)
 
             messages.add_message(request, messages.SUCCESS,
-                                 'Approve file successfully.')
+                                'Approve file successfully.')
             return redirect('task_edits', project.id, phase.id, task.id)
         print(request.POST)
 
@@ -744,6 +817,11 @@ def task_edits(request, pk_project, pk_phase, pk_task):
         'task_files': task_files,
         'last_file': last_file,
         'approve_form': approve_form,
+
+        'task_per_add': task_per_add,
+        'task_per_change': task_per_change,
+        'task_change': task_change,
+        'task_delete': task_delete,
     }
     return render(request, 'projects/task-edits.html', context=context)
 

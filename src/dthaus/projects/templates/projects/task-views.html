@@ -1,6 +1,9 @@
 {% extends 'main.html' %}
 {% block body %}
-{% include 'projects/horizontal-timeline.html' %}
+
+{% if project.project_manager.id == request.user.id %}
+    {% include 'projects/horizontal-timeline.html' %}
+{% endif %}
 <h1 style="text-align: center;">{{ title }}</h1>
 <div>
     {% if task_per_add %}
@@ -55,8 +58,6 @@
                         <td>
                             <a href="{% url 'task_delete' project.id phase.id task.id %}">Delete</a>
                         </td>
-                        
-                        <h1>{{ project.id }}-{{ phase.id }}-{{ task.id }}</h1>
                     </tr>
                     {% endfor %}
                 </tbody>
