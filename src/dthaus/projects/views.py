@@ -64,27 +64,30 @@ def projects(request):
             if str(permission['permission']) == 'view':
                 # Permission view project
                 if permission['object_type'] == 'project':
-                    project = Project.objects.get(id=permission['object_id'])
-                    if project not in projects:
-                        projects.append(project)
+                    _project = Project.objects.get(id=permission['object_id'])
+                    if _project not in projects:
+                        projects.append(_project)
 
-                        for phase in Phase.objects.filter(project=project):
-                            phases.append(phase)
-                            for task in Task.objects.filter(phase=phase):
-                                tasks.append(task)
+                        for _phase in Phase.objects.filter(project=_project):
+                            if _phase not in phases:
+                                phases.append(_phase)
+                            for _task in Task.objects.filter(phase=_phase):
+                                if _task not in tasks:
+                                    tasks.append(_task)
 
                 # Permission view phase
                 if permission['object_type'] == 'phase':
-                    phase = Phase.objects.get(id=permission['object_id'])
-                    if phase not in phases:
-                        phases.append(phase)
-                        project = phase.project
+                    _phase = Phase.objects.get(id=permission['object_id'])
+                    if _phase not in phases:
+                        phases.append(_phase)
+                        _project = _phase.project
 
-                        if project not in projects:
-                            projects.append(project)
+                        if _project not in projects:
+                            projects.append(_project)
 
-                        for task in Task.objects.filter(phase=phase):
-                            tasks.append(task)
+                        for _task in Task.objects.filter(phase=_phase):
+                            if _task not in tasks:
+                                tasks.append(_task)
 
                 # Permission view task
                 if permission['object_type'] == 'task':
@@ -100,12 +103,13 @@ def projects(request):
                             projects.append(project)
 
             # Permission
-            if str(permission['permission']) == 'add':
-                project_per_add = True
-            if str(permission['permission']) == 'change':
-                project_per_change = True
-            if str(permission['permission']) == 'delete':
-                project_per_delete = True
+            if permission['object_type'] == 'project': 
+                if str(permission['permission']) == 'add':
+                    project_per_add = True
+                if str(permission['permission']) == 'change':
+                    project_per_change = True
+                if str(permission['permission']) == 'delete':
+                    project_per_delete = True
 
     context = {
         'brand': brand,
@@ -573,10 +577,11 @@ def task_views(request, pk_project, pk_phase):
                         projects.append(_project)
 
                         for _phase in Phase.objects.filter(project=project):
-                            phases.append(_phase)
+                            if _phase not in phases:
+                                phases.append(_phase)
                             for _task in Task.objects.filter(phase=_phase):
-                                tasks.append(_task)
-                                print('task', _task)
+                                if _task not in tasks:
+                                    tasks.append(_task)
 
                 # Permission view phase
                 if permission['object_type'] == 'phase':
@@ -584,8 +589,9 @@ def task_views(request, pk_project, pk_phase):
                     if _phase not in phases:
                         phases.append(_phase)
                         
-                        for task in Task.objects.filter(phase=_phase):
-                            tasks.append(task)
+                        for _task in Task.objects.filter(phase=_phase):
+                            if _task not in tasks:
+                                tasks.append(_task)
                 
                 # Permission view task
                 if permission['object_type'] == 'task':
@@ -722,12 +728,10 @@ def task_edits(request, pk_project, pk_phase, pk_task):
                     if _task not in task_delete:
                         task_delete.append(_task)
 
-    task_form = ''
-    file_form = ''
+    task_form = TaskCreateForm(instance=task)
+    file_form = FileCreateForm(instance=task)
     if task in task_change:
         task_per_change = True
-        task_form = TaskCreateForm(instance=task)
-        file_form = FileCreateForm(instance=task)
 
         if request.method == 'POST':
             if 'update-task' in request.POST:
@@ -746,6 +750,44 @@ def task_edits(request, pk_project, pk_phase, pk_task):
                             request, messages.SUCCESS, 'Task updated successfully.')
                     else:
                         messages.add_message(request, messages.ERROR, form.errors)
+
+                # Handle file form
+                try:
+                    print(request.POST)
+                    uploaded_file = request.FILES.get('attachment')
+                    project_name = project.name.replace(' ', '-')
+                    phase_name = phase.name.replace(' ', '-')
+                    task_name = task.name.replace(' ', '-')
+                    location = f"{project_name}/{phase_name}/{task_name}"
+
+                    file_name = default_storage.save(
+                        f"{location}/{uploaded_file.name}", uploaded_file)
+                    print('file_name', file_name)
+                    file_url = default_storage.url(
+                        f"{location}/{uploaded_file.name}")
+                    print('file_url', file_url)
+
+                    tf.name = file_name.split('/')[-1]
+                    tf.attachment = f"{settings.MEDIA_URL}{file_name}"
+                    tf.url = f"{settings.MEDIA_URL}{file_name}"
+                    tf.task = Task.objects.get(id=pk_task, phase=phase)
+                    tf.user = UserManagement.objects.get(id=request.user.id)
+                    tf.save()
+
+                    messages.add_message(
+                        request, messages.SUCCESS, 'File uploaded.')
+
+                except Exception as err:
+                    print(err)
+
+                return redirect('task_edits', project.id, phase.id, task.id)
+
+    # User who have permission upload file
+    if request.user.id == task.user_upload.id:
+        if request.method == 'POST':
+            if 'update-task' in request.POST:
+                form = TaskCreateForm(request.POST or None, instance=task)
+                tf = TaskFiles()
 
                 # Handle file form
                 try:
@@ -840,8 +882,8 @@ def task_delete(request, pk_project, pk_phase, pk_task):
     context = {
         'brand': brand,
         'title': title,
-        # 'project': project,
-        # 'phase': phase,
+        'project': project,
+        'phase': phase,
         'task': task,
     }
     return render(request, 'projects/task-delete.html', context=context)
