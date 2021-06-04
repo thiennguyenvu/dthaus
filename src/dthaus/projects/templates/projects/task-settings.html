@@ -1,6 +1,8 @@
 {% extends 'main.html' %}
 {% block body %}
+{% if project.project_manager.id == request.user.id %}
 {% include 'projects/horizontal-timeline.html' %}
+{% endif %}
 <h1 style="text-align: center;">{{ title }}</h1>
 <div>Select <span class="text-highlight">tasks</span> you want to add into <span class="text-highlight">phase</span> <b>{{ phase.phase_name }}</b> of <span class="text-highlight">project</span> <b>{{ project.name }}</b>.
     {% if messages %}

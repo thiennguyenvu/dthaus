@@ -1,6 +1,8 @@
 {% extends 'main.html' %}
 {% block body %}
+{% if project.project_manager.id == request.user.id %}
 {% include 'projects/horizontal-timeline.html' %}
+{% endif %}
 <h1 style="text-align: center;">{{ title }}</h1>
 <div>
     {% if phase_per_add %}
