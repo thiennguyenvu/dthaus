@@ -11,26 +11,56 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNavDropdown">
         <ul class="navbar-nav w-100">
+
+            {% if title == 'Dashboard' %}
             <li class="nav-item active">
+                {% else %}
+            <li class="nav-item">
+                {% endif %}
                 <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-tachometer-alt"></i><span
                         class="label">Dashboard</span></a>
             </li>
+
+            {% if title == 'Projects' %}
+            <li class="nav-item active">
+                {% else %}
             <li class="nav-item">
+                {% endif %}
                 <a class="nav-link" href="{% url 'projects' %}"><i class="fas fa-clipboard-list"></i><span
                         class="label">Projects</span></a>
             </li>
+
+            {% if title == 'Customers' %}
+            <li class="nav-item active">
+                {% else %}
             <li class="nav-item">
+                {% endif %}
                 <a class="nav-link" href="{% url 'customers' %}"><i class="fas fa-comments-dollar"></i><span
                         class="label">Customers</span></a>
             </li>
+            
+            {% if title == 'User Management' %}
+            <li class="nav-item active">
+                {% else %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'user_management' %}"><i class="fas fa-users-cog"></i><span
+                {% endif %}
+                <a class="nav-link" href="{% url 'user_management' %}"><i class="fas fa-users"></i><span
                         class="label">User Management</span></a>
             </li>
+            
+            {% if title == 'Group Settings' %}
+            <li class="nav-item active">
+                {% else %}
+            <li class="nav-item">
+                {% endif %}
+                <a class="nav-link" href="{% url 'group_settings' %}"><i class="fas fa-users-cog"></i><span
+                        class="label">Group Settings</span></a>
+            </li>
         </ul>
-        <ul class="navbar-nav w-100">
+        <ul class="navbar-nav w-50">
             <li class="nav-item ml-auto">
-                <a class="nav-link display-name" href="{% if request.user.username %}{% url 'profiles' username=request.user.username %}{% endif %}">
+                <a class="nav-link display-name"
+                    href="{% if request.user.username %}{% url 'profiles' username=request.user.username %}{% endif %}">
                     {% if request.user.avatar %}
                     <img intrinsicsize="32x32" class="navbar-profile-img" src="{{ request.user.avatar.url }}">
                     {% endif %}
@@ -41,12 +71,15 @@
                     aria-haspopup="true" aria-expanded="false" aria-label="settings"><i
                         class="fas fa-sliders-h"></i></a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-                    <a class="dropdown-item" href="{% if request.user.username %}{% url 'profiles' username=request.user.username %}{% endif %}"><i
+                    <a class="dropdown-item"
+                        href="{% if request.user.username %}{% url 'profiles' username=request.user.username %}{% endif %}"><i
                             class="fas fa-id-card"></i><span class="label">See your
                             profile</span></a>
                     <a class="dropdown-item" href="#"><i class="fas fa-comment-dots"></i><span class="label">Give
                             Feedback</span></a>
-                    <a class="dropdown-item" href="{% if request.user.username %}{% url 'settings' username=request.user.username %}{% endif %}"><i class="fas fa-cogs"></i><span class="label">Settings &
+                    <a class="dropdown-item"
+                        href="{% if request.user.username %}{% url 'settings' username=request.user.username %}{% endif %}"><i
+                            class="fas fa-cogs"></i><span class="label">Settings &
                             Privacy</span></a>
                     <a class="dropdown-item" href="#"><i class="fas fa-tv"></i><span class="label">Display &
                             Accessibility</span></a>

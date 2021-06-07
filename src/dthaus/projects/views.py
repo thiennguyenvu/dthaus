@@ -869,7 +869,53 @@ def task_delete(request, pk_project, pk_phase, pk_task):
     phase = Phase.objects.get(id=pk_phase)
     task = Task.objects.get(id=pk_task)
 
-    print(project,phase, task)
+    projects = []
+    phases = []
+    tasks = []
+    task_per_delete = False
+
+    if request.user.is_superuser:
+        task_per_delete = True
+    else:
+        for permission in all_permission(request):
+            if str(permission['permission']) == 'delete':
+                # Permission view project
+                if permission['object_type'] == 'project':
+                    _project = Project.objects.get(id=permission['object_id'])
+                    if _project not in projects:
+                        projects.append(_project)
+
+                        for _phase in Phase.objects.filter(project=_project):
+                            if _phase not in phases:
+                                phases.append(_phase)
+
+                                for _task in Task.objects.filter(phase=_phase):
+                                    if _task not in tasks:
+                                        tasks.append(_task)
+
+                if permission['object_type'] == 'phase':
+                    _phase = Phase.objects.get(id=permission['object_id'])
+                    if _phase not in phases:
+                        phases.append(_phase)
+
+                        for _task in Task.objects.filter(phase=_phase):
+                            if _task not in tasks:
+                                tasks.append(_task)
+                
+                if permission['object_type'] == 'task':
+                    _task = Task.objects.get(id=permission['object_id'])
+                    if _task not in tasks:
+                        tasks.append(_task)
+
+        if project in projects or phase in phases or task in tasks:
+            task_per_delete = True
+    
+    if task_per_delete:
+        pass
+    else:
+        messages.add_message(request, messages.ERROR,
+                             "You don't have permissions for this action.")
+        return redirect("projects")      
 
     if request.method == 'POST':
         task.delete()

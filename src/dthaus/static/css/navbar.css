@@ -12,3 +12,9 @@
   height: 32px;
   border-radius: 50px; 
 }
+
+/* Highlight selected tab of navbar */
+.nav-item.active{
+  background-color: rgba(0,0,0,.1);
+  border-radius: 5%;
+}

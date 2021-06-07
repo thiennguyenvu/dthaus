@@ -10,7 +10,7 @@ from datetime import datetime
 from django.utils import timezone
 
 from .models import *
-from .forms import UserBioForm, UserAvatarForm, UserPasswordForm, \
+from .forms import GroupSettingsForm, UserBioForm, UserAvatarForm, UserPasswordForm, \
     UserProfileForm, UserRegisterForm, UserManagementForm
 
 # Create your views here.
@@ -170,16 +170,45 @@ def register(request):
 @login_required(login_url='login')
 def user_management(request):
     title = 'User Management'
-
-
     user_list = UserManagement.objects.all()
-    
 
     context = {
         'brand': brand,
         'title': title,
         'user_list': user_list,
-
     }
     return render(request, 'accounts/user-management.html', context=context)
-    pass
+
+
+@login_required(login_url='login')
+def group_settings(request):
+    title = 'Group Settings'
+    groups = UserGroup.objects.all()
+
+    context = {
+        'brand': brand, 
+        'title': title,
+        'groups': groups,
+    }
+    return render(request, 'accounts/group-settings.html', context=context)
+
+@login_required(login_url='login')
+def group_create(request):
+    title = 'Group Create'
+    group_form = GroupSettingsForm()
+    if request.method == 'POST':
+        group_form = GroupSettingsForm(request.POST or None)
+        if group_form.is_valid():
+            group_form.save()
+            messages.add_message(request, messages.SUCCESS,
+                                 'Create group successfully.')
+            return redirect(group_settings)
+        else:
+            messages.add_message(request, messages.ERROR, 'Invalid form')
+
+    context = {
+        'brand': brand,
+        'title': title,
+        'group_form': group_form,
+    }
+    return render(request, 'accounts/group-create.html', context=context)

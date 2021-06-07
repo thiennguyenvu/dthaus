@@ -54,6 +54,10 @@
             <label for="id_bio">Bio:</label>
             {{ register_form.bio }}
         </p>
+        <p>
+            <label for="id_user_group">Group User:</label>
+            {{ register_form.user_group }}
+        </p>
         <a href="{% url 'user_management' %}"><input type="button" value="Back to User Management"></a>
         <input type="submit" value="Create User">
     </form>
