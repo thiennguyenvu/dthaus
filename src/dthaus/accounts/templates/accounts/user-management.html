@@ -3,17 +3,6 @@
 {% endblock head %}
 {% block body %}
 <h1 style="text-align: center;">{{ title }}</h1>
-<style>
-    table,
-    th,
-    td {
-        border: 1px solid black;
-    }
-
-    table {
-        margin: 30px 0px;
-    }
-</style>
 <div>
     <a href="{% url 'register' %}">Add User</a>
     {% if messages %}
@@ -32,6 +21,7 @@
                 <th>Last Name</th>
                 <th>Email</th>
                 <th>Permission</th>
+                <th>User Group</th>
             </thead>
             <tbody>
                 {% for user in user_list %}
@@ -47,6 +37,11 @@
                     {% else %}
                     <td>user</td>
                     {% endif %}
+                    <td>
+                        {% for group in user.user_group.all %}
+                            <div>{{ group }} </div>
+                        {% endfor %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

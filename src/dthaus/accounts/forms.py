@@ -10,8 +10,8 @@ class DateInput(forms.DateInput):
 class UserProfileForm(ModelForm):
     class Meta:
         model = UserManagement
-        fields = ['first_name', 'last_name', 'email',
-                  'birth_date', ]
+        fields = ('first_name', 'last_name', 'email',
+                  'birth_date',)
         widgets = {
             'birth_date': DateInput(),
             'date_joined': forms.TextInput(),
@@ -62,3 +62,9 @@ class UserManagementForm(ModelForm):
         widgets = {
             'birth_date': DateInput(),
         }
+
+
+class GroupSettingsForm(ModelForm):
+    class Meta:
+        model = UserGroup
+        fields = '__all__'
