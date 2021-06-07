@@ -1,0 +1,33 @@
+{% extends 'main.html' %}
+{% block head %}
+{% endblock head %}
+{% block body %}
+<h1 style="text-align: center;">{{ title }}</h1>
+<div>
+    <a href="{% url 'group_create' %}">Add new Group</a>
+    <table>
+        <thead>
+            <th>Object ID</th>
+            <th>Object Type</th>
+            <th>Permission</th>
+            <th>Name</th>
+            <th>Description</th>
+        </thead>
+        <tbody>
+            {% for group in groups %}
+            <tr>
+                <td>{{ group.object_id }}</td>
+                <td>{{ group.object_type }}</td>
+                <td>
+                    {% for permisson in group.permission.all %}
+                    <div>{{ permisson }}</div>
+                    {% endfor %}
+                </td>
+                <td>{{ group.name }}</td>
+                <td>{{ group.description }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock body %}
