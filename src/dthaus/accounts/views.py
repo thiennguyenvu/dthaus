@@ -81,9 +81,7 @@ def profiles(request, username):
     return render(request, 'accounts/profiles.html', context=context)
 
 
-login_required(login_url='login')
-
-
+@login_required(login_url='login')
 def settings(request, username):
     title = 'Settings & Privacy'
     user = request.user
@@ -136,9 +134,7 @@ def settings(request, username):
     return render(request, 'accounts/settings.html', context=context)
 
 
-login_required(login_url='login')
-
-
+@login_required(login_url='login')
 def register(request):
     title = 'Register Page'
 
@@ -171,17 +167,13 @@ def register(request):
     return render(request, 'accounts/register.html', context=context)
 
 
-login_required(login_url='login')
-
-
+@login_required(login_url='login')
 def user_management(request):
     title = 'User Management'
+
+
     user_list = UserManagement.objects.all()
-    time_now = datetime.now().astimezone()
-    my_format = time_now.strftime("%Y-%m-%dT%H:%M:%S%z")
     
-    print(time_now)
-    print(my_format)
 
     context = {
         'brand': brand,

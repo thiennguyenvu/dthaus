@@ -5,6 +5,8 @@ from django.forms import inlineformset_factory, modelformset_factory
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
+
 # Create your views here.
 from .models import *
 from .forms import ProjectCreateForm, PhaseCreateForm, ListPhaseForm, \
@@ -622,15 +624,6 @@ def task_views(request, pk_project, pk_phase):
                     if _task not in task_delete:
                         task_delete.append(_task)
 
-    print('tasks', tasks)
-    print('task_add', task_per_add)
-    print('task_change', task_change)
-    print('task_delete', task_delete)
-    print('project', project.id)
-    print('phase', phase.id)
-    for task in tasks:
-        print(task.id)
-
     if tasks or request.user.is_superuser:
         pass
     else:
@@ -668,7 +661,7 @@ def task_edits(request, pk_project, pk_phase, pk_task):
 
     project = Project.objects.get(id=pk_project)
     phase = Phase.objects.get(id=pk_phase)
-    task = Task.objects.get(id=pk_task, phase=phase)
+    task = get_object_or_404(Task, id=pk_task, phase=phase)
 
     if request.user.is_superuser:
         task_per_add = True
@@ -783,42 +776,43 @@ def task_edits(request, pk_project, pk_phase, pk_task):
                 return redirect('task_edits', project.id, phase.id, task.id)
 
     # User who have permission upload file
-    if request.user.id == task.user_upload.id:
-        if request.method == 'POST':
-            if 'update-task' in request.POST:
-                form = TaskCreateForm(request.POST or None, instance=task)
-                tf = TaskFiles()
+    if task.user_upload:
+        if request.user.id == task.user_upload.id:
+            if request.method == 'POST':
+                if 'update-task' in request.POST:
+                    form = TaskCreateForm(request.POST or None, instance=task)
+                    tf = TaskFiles()
 
-                # Handle file form
-                try:
-                    print(request.POST)
-                    uploaded_file = request.FILES.get('attachment')
-                    project_name = project.name.replace(' ', '-')
-                    phase_name = phase.name.replace(' ', '-')
-                    task_name = task.name.replace(' ', '-')
-                    location = f"{project_name}/{phase_name}/{task_name}"
+                    # Handle file form
+                    try:
+                        print(request.POST)
+                        uploaded_file = request.FILES.get('attachment')
+                        project_name = project.name.replace(' ', '-')
+                        phase_name = phase.name.replace(' ', '-')
+                        task_name = task.name.replace(' ', '-')
+                        location = f"{project_name}/{phase_name}/{task_name}"
 
-                    file_name = default_storage.save(
-                        f"{location}/{uploaded_file.name}", uploaded_file)
-                    print('file_name', file_name)
-                    file_url = default_storage.url(
-                        f"{location}/{uploaded_file.name}")
-                    print('file_url', file_url)
+                        file_name = default_storage.save(
+                            f"{location}/{uploaded_file.name}", uploaded_file)
+                        print('file_name', file_name)
+                        file_url = default_storage.url(
+                            f"{location}/{uploaded_file.name}")
+                        print('file_url', file_url)
 
-                    tf.name = file_name.split('/')[-1]
-                    tf.attachment = f"{settings.MEDIA_URL}{file_name}"
-                    tf.url = f"{settings.MEDIA_URL}{file_name}"
-                    tf.task = Task.objects.get(id=pk_task, phase=phase)
-                    tf.user = UserManagement.objects.get(id=request.user.id)
-                    tf.save()
+                        tf.name = file_name.split('/')[-1]
+                        tf.attachment = f"{settings.MEDIA_URL}{file_name}"
+                        tf.url = f"{settings.MEDIA_URL}{file_name}"
+                        tf.task = Task.objects.get(id=pk_task, phase=phase)
+                        tf.user = UserManagement.objects.get(id=request.user.id)
+                        tf.save()
 
-                    messages.add_message(
-                        request, messages.SUCCESS, 'File uploaded.')
+                        messages.add_message(
+                            request, messages.SUCCESS, 'File uploaded.')
 
-                except Exception as err:
-                    print(err)
+                    except Exception as err:
+                        print(err)
 
-                return redirect('task_edits', project.id, phase.id, task.id)
+                    return redirect('task_edits', project.id, phase.id, task.id)
 
     # Get attachment of Task
     task_files = TaskFiles.objects.filter(task=pk_task)
@@ -874,6 +868,8 @@ def task_delete(request, pk_project, pk_phase, pk_task):
     project = Project.objects.get(id=pk_project)
     phase = Phase.objects.get(id=pk_phase)
     task = Task.objects.get(id=pk_task)
+
+    print(project,phase, task)
 
     if request.method == 'POST':
         task.delete()
