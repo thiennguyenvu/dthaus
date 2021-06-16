@@ -1,0 +1,73 @@
+.dnone {
+  display: none;
+}
+
+.tbl-project {
+  margin: 0 auto;
+  border-radius: 15px;
+}
+
+.tbl-label {
+  text-align: center !important;
+}
+
+.tbl-project input {
+  width: 100%;
+}
+
+.tbl-body tr:nth-child(even) {
+  background-color: #f1f1f1; /* #94DEFB */
+}
+
+.tbl-body tr:nth-child(odd) {
+}
+
+/* Hover row effect */
+.tbl-body tr:hover td {
+  background-color: #A2C8F9;
+  color: black;
+}
+
+.tbl-body tr:hover td a {
+  color: black;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.row-selected,
+.row-selected:hover td {
+  background-color: #5D9FF5 !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
+.row-selected td a {
+  color: #fff !important;
+}
+
+.tree {
+  background-color: #E7F1FD;
+}
+
+.tree li.parent_li > span {
+  background-color: #1877f2;
+  color: white;
+}
+
+.tree li.parent_li > ul > li > span {
+  background-color: #5D9FF5;
+  color: white;
+}
+
+.tree li.parent_li > ul > li > ul > li > span {
+  background-color: #A2C8F9;
+  color: black;
+}
+
+.filter {
+  float: right;
+  margin-right: 5px;
+  margin-left: 5px;
+}

@@ -38,6 +38,7 @@ class UserGroup(models.Model):
 
 
 class UserManagement(AbstractUser):
+    email = models.EmailField(unique=True)
     bio = models.TextField(max_length=500, blank=True)
     birth_date = models.CharField(max_length=10, null=True, blank=True)
     avatar = models.ImageField(null=True, blank=True, upload_to=f"avatar")

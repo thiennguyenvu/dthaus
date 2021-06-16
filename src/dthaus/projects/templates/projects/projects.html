@@ -1,5 +1,7 @@
 {% extends 'main.html' %}
+{% load static %}
 {% block head %}
+<link rel="stylesheet" href="{% static 'css/projects/projects.css' %}">
 {% endblock head %}
 {% block body %}
 <h1 style="text-align: center;">{{ title }}</h1>
@@ -17,97 +19,191 @@
     {% if project_per_add == True %}
     <a href="{% url 'project_create' %}">Add New Project</a>
     {% endif %}
-    {% if projects or phases or tasks %}
-    <table>
-        <thead>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Status</th>
-            <th>Priority</th>
-            <th>Date Created</th>
-            <th>Start Date</th>
-            <th>Due Date</th>
-            <th>Phase Order</th>
-            <th>Date Finished</th>
-            <th>Progress</th>
-            <th>Customers</th>
-            <th>Project Manager</th>
-            {% if project_per_change or project_per_delete %}
-            <th colspan="2">Permission</th>
-            {% endif %}
-        </thead>
-        <tbody>
-            {% for item in projects %}
-            <tr>
-                <td>{{ item.name }}</td>
-                <td>{{ item.description }}</td>
-                <td>{{ item.status }}</td>
-                <td>{{ item.priority }}</td>
-                <td>{{ item.date_created }}</td>
-                <td>{{ item.start_date|date:"d-m-Y" }}</td>
-                <td>{{ item.due_date|date:"d-m-Y" }}</td>
-                <td>{{ item.phase_order }}</td>
-                <td>{{ item.date_finished|date:"d-m-Y" }}</td>
-                <td>{{ item.progress }}</td>
-                <td>{{ item.customer }}</td>
-                <td>{{ item.project_manager }}</td>
-                {% if project_per_change %}
-                <td>
-                    <a href="{% url 'project_update' item.id %}">Update</a>
-                </td>
-                {% endif %}
-                {% if project_per_delete %}
-                <td>
-                    <a href="{% url 'project_delete' item.id %}">Delete</a>
-                </td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <div>
-        <p>This content isn't available at the moment</p>
-        <p>When this happens, it's usually because the owner only shared it with a small group of people or changed who can see it, or it's been deleted.
-        </p>
-    </div>
-    {% endif %}
+
+    <form method="POST" class="dnone">
+        {% csrf_token %}
+        {{ form_select }}
+        <input id="btn-project-select" type="submit">
+    </form>
 </div>
-<div>
-    <div class="tree well">
-        <ul>
-            {% for project in projects %}
-            <li>
-                <span><i class="fas fa-clipboard-list"></i> {{ project }} </span> <a
-                    href="{% url 'project_update' project.id %}">Edit Project</a>
-                <ul>
-                    {% for phase in phases %}
-                    {% if phase.project == project %}
-                    <li>
-                        <span><i class="fas fa-list-alt"></i> {{ phase }}</span> <a
-                            href="{% url 'phase_edit' project.id %}">Edit Phase</a>
-                        <ul>
-                            {% for task in tasks %}
-                            {% if task.phase == phase %}
-                            <li>
-                                <span><i class="fas fa-tasks"></i> {{ task }}</span> <a
-                                    href="{% url 'task_edits' project.id phase.id task.id %}">Edit Task</a>
-                            </li>
-                            {% endif %}
-                            {% endfor %}
-                        </ul>
-                    </li>
+<div class="row">
+    <div class="col-md-8">
+        {% if projects or phases or tasks %}
+        <h5 style="text-align: center;">List Project</h5>
+        <table class="tbl-project">
+            <thead>
+                <th class="th-name">
+                    <div class="tbl-label">Name</div>
+                    <div><input id="filter-name" placeholder="Search for name"></div>
+                </th>
+                <th class="th-status">
+                    <div class="tbl-label">Status</div>
+                    <div><input id="filter-status" placeholder="Search for status"></div>
+                </th>
+                <th class="th-priority">
+                    <div class="tbl-label">Priority</div>
+                    <div><input id="filter-priority" placeholder="Search for priority"></div>
+                </th>
+                <th class="th-start-date">
+                    <div class="tbl-label">Start Date</div>
+                    <div><input id="filter-start-date" placeholder="Search for start date"></div>
+                </th>
+                <th class="th-due-date">
+                    <div class="tbl-label">Due Date</div>
+                    <div><input id="filter-due-date" placeholder="Search for due date"></div>
+                </th>
+                <th class="th-customers">
+                    <div class="tbl-label">Customers</div>
+                    <div><input id="filter-customers" placeholder="Search for customers"></div>
+                </th>
+                <th class="th-project-manager">
+                    <div class="tbl-label">PM</div>
+                    <div><input id="filter-project-manager" placeholder="Search for project manager"></div>
+                </th>
+                {% if project_per_change or project_per_delete %}
+                <th colspan="2" class="tbl-label">Permission</th>
+                {% endif %}
+            </thead>
+            <tbody class="tbl-body">
+                {% for item in projects %}
+                {% if item.id == choice_project.id %}
+                <tr class="row-selected" data-toggle="tooltip" data-placement="top" title="This row is current selection">
+                {% else %}
+                <tr data-toggle="tooltip" data-placement="top" title="Click to see more details">
+                {% endif %}
+                    <td class="td-name" project-id="{{item.id}}">{{ item.name }}</td>
+                    <td class="td-status text-center">{{ item.status }}</td>
+                    <td class="td-priority text-center">{{ item.priority }}</td>
+                    <td class="td-start-date text-center">{{ item.start_date|date:"d-m-Y" }}</td>
+                    <td class="td-due-date text-center">{{ item.due_date|date:"d-m-Y" }}</td>
+                    <td class="td-customers text-center">{{ item.customer }}</td>
+                    <td class="td-project-manager text-center">{{ item.project_manager }}</td>
+                    {% if project_per_change %}
+                    <td>
+                        <a href="{% url 'project_update' item.id %}">Update</a>
+                    </td>
                     {% endif %}
-                    {% endfor %}
-                </ul>
-            </li>
-            {% endfor %}
-        </ul>
+                    {% if project_per_delete %}
+                    <td>
+                        <a href="{% url 'project_delete' item.id %}">Delete</a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div>
+            <p>This content isn't available at the moment</p>
+            <p>When this happens, it's usually because the owner only shared it with a small group of people or changed
+                who can see it, or it's been deleted.</p>
+        </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <h5 style="text-align: center;">Tree View</h5>
+        <div class="tree well">
+            {% if choice_project %}
+            <ul>
+                <li>
+                    <span><i class="fas fa-clipboard-list"></i> {{ choice_project }} </span> <a
+                        href="{% url 'project_update' choice_project.id %}">Edit Project</a>
+                    <ul>
+                        {% for phase in phases %}
+                        {% if phase.project == choice_project %}
+                        <li>
+                            <span><i class="fas fa-list-alt"></i> {{ phase }}</span> <a
+                                href="{% url 'phase_edit' choice_project.id %}">Edit Phase</a>
+                            <ul>
+                                {% for task in tasks %}
+                                {% if task.phase == phase %}
+                                <li>
+                                    <span><i class="fas fa-tasks"></i> {{ task }}</span> <a
+                                        href="{% url 'task_edits' choice_project.id phase.id task.id %}">Edit Task</a>
+                                </li>
+                                {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                </li>
+            </ul>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock body %}
 {% block script %}
 <script>
+    jQuery(function ($) {
+        $('.th-name input').focus();
+        $('.tbl-body tr').click(function () {
+            id = $(this).find('.td-name').attr('project-id').toString(); // Get id from td-name
+            $('#id_id_selected').val(id);
+            $('#btn-project-select').click();
+        });
+
+        function myFilter(input_class, td) {
+            input = document.getElementById(input_class);
+            filter = input.value.toUpperCase();
+
+            for (i = 0; i < td.length; i++) {
+                tdValue = td[i].textContent || td[i].innerText;
+                if (tdValue.toUpperCase().indexOf(filter) > -1) {
+                    td[i].parentElement.style.display = ''
+                } else {
+                    td[i].parentElement.style.display = 'none' // Hide all <td> of row
+                }
+            }
+        }
+
+        $('.th-name input').keyup(function (e) {
+            td = $('.td-name');
+            input_class = 'filter-name';
+            myFilter(input_class, td);
+        });
+
+        $('.th-status input').keyup(function (e) {
+            td = $('.td-status');
+            input_class = 'filter-status';
+            myFilter(input_class, td);
+        });
+
+        $('.th-priority input').keyup(function (e) {
+            td = $('.td-priority');
+            input_class = 'filter-priority';
+            myFilter(input_class, td);
+        });
+
+        $('.th-start-date input').keyup(function (e) {
+            td = $('.td-start-date');
+            input_class = 'filter-start-date';
+            myFilter(input_class, td);
+        });
+
+        $('.th-due-date input').keyup(function (e) {
+            td = $('.td-due-date');
+            input_class = 'filter-due-date';
+            myFilter(input_class, td);
+        });
+
+        $('.th-customers input').keyup(function (e) {
+            td = $('.td-customers');
+            input_class = 'filter-customers';
+            myFilter(input_class, td);
+        });
+
+        $('.th-project-manager input').keyup(function (e) {
+            td = $('.td-project-manager');
+            input_class = 'filter-project-manager';
+            myFilter(input_class, td);
+        });
+
+    });
+
+    // Tree animation
     $(function () {
         $('.tree li:has(ul)').addClass('parent_li').find(' > span').attr('title', 'Collapse this branch');
         $('.tree li.parent_li > span').on('click', function (e) {

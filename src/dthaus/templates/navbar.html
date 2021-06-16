@@ -75,14 +75,12 @@
                         href="{% if request.user.username %}{% url 'profiles' username=request.user.username %}{% endif %}"><i
                             class="fas fa-id-card"></i><span class="label">See your
                             profile</span></a>
-                    <a class="dropdown-item" href="#"><i class="fas fa-comment-dots"></i><span class="label">Give
-                            Feedback</span></a>
+                    <a class="dropdown-item" href="mailto:it@dongjinvietnam.com"><i class="fas fa-comment-dots"></i><span class="label">Give
+                            Feedback/Report a bug</span></a>
                     <a class="dropdown-item"
                         href="{% if request.user.username %}{% url 'settings' username=request.user.username %}{% endif %}"><i
                             class="fas fa-cogs"></i><span class="label">Settings &
                             Privacy</span></a>
-                    <a class="dropdown-item" href="#"><i class="fas fa-tv"></i><span class="label">Display &
-                            Accessibility</span></a>
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i><span
                             class="label">Log

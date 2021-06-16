@@ -65,6 +65,14 @@ class UserManagementForm(ModelForm):
 
 
 class GroupSettingsForm(ModelForm):
+
     class Meta:
         model = UserGroup
         fields = '__all__'
+
+
+class ObjectTypeForm(ModelForm):
+    class Meta:
+        model = UserGroup
+        fields = ('object_type',)
+

@@ -6,6 +6,9 @@ from .models import models, Project, Phase, CustomPhase, Task, CustomTask, TaskF
 class DateInput(forms.DateInput):
     input_type = 'date'
 
+class ProjectSelectedForm(forms.Form):
+    id_selected = forms.IntegerField()
+
 
 class ProjectCreateForm(ModelForm):
     class Meta:
