@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 # Create your views here.
 from .models import *
 from .forms import ProjectCreateForm, PhaseCreateForm, ListPhaseForm, \
-    TaskCreateForm, ListTaskForm, FileCreateForm, FileApproveForm
+    TaskCreateForm, ListTaskForm, FileCreateForm, FileApproveForm, ProjectSelectedForm
 
 brand = 'DONGJIN VIETNAM J.S.C'
 
@@ -113,6 +113,14 @@ def projects(request):
                 if str(permission['permission']) == 'delete':
                     project_per_delete = True
 
+    form_select = ProjectSelectedForm() # Select id of project
+    choice_project = ''
+    if request.method == 'POST':
+        form_select = ProjectSelectedForm(request.POST)
+        if form_select.is_valid():
+            form_select.id_selected = request.POST['id_selected']
+            choice_project = Project.objects.get(id=form_select.id_selected)
+
     context = {
         'brand': brand,
         'title': title,
@@ -122,6 +130,8 @@ def projects(request):
         'project_per_add': project_per_add,
         'project_per_change': project_per_change,
         'project_per_delete': project_per_delete,
+        'form_select': form_select,
+        'choice_project': choice_project,
     }
 
     return render(request, 'projects/projects.html', context=context)

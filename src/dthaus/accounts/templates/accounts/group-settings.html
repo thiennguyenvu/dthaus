@@ -5,6 +5,14 @@
 <h1 style="text-align: center;">{{ title }}</h1>
 <div>
     <a href="{% url 'group_create' %}">Add new Group</a>
+    <div>
+        <form>
+            <div>{{ obj_type_form }}</div>
+            <input type="submit" value="Filter">
+        </form>
+    </div>
+
+    {% if groups %}
     <table>
         <thead>
             <th>Object ID</th>
@@ -29,5 +37,18 @@
             {% endfor %}
         </tbody>
     </table>
+    {% endif %}
+</div>
+<div>
+
 </div>
 {% endblock body %}
+
+
+{% block script %}
+<script>
+    jQuery(function($){
+        
+    })
+</script>
+{% endblock script %}

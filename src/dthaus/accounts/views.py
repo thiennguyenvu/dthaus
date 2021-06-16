@@ -1,16 +1,18 @@
+from django.core.mail import send_mail
+from django.core.mail.message import EmailMessage
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth import update_session_auth_hash
 from datetime import datetime
 from django.utils import timezone
+from django.conf import settings as dthaus_settings
 
 from .models import *
-from .forms import GroupSettingsForm, UserBioForm, UserAvatarForm, UserPasswordForm, \
+from .forms import GroupSettingsForm, ObjectTypeForm, UserBioForm, UserAvatarForm, UserPasswordForm, \
     UserProfileForm, UserRegisterForm, UserManagementForm
 
 # Create your views here.
@@ -26,13 +28,24 @@ def loginPage(request):
             password = request.POST.get('password')
 
             user = authenticate(request, username=username, password=password)
-
             if user is not None:
                 login(request, user)
                 return redirect('home')
-            else:
-                messages.add_message(
-                    request, messages.ERROR, 'Username or Password is incorrect')
+            else:  # Login with email as username
+                user_email = ''
+                try:
+                    user_email = UserManagement.objects.get(email=username)
+                    user = authenticate(
+                        request, username=user_email, password=password)
+                    if user is not None:
+                        login(request, user)
+                        return redirect('home')
+                    else:
+                        messages.add_message(
+                            request, messages.ERROR, 'Username or Password is incorrect')
+                except:
+                    messages.add_message(
+                        request, messages.ERROR, 'Username or Password is incorrect')
 
         return render(request, 'accounts/login.html')
 
@@ -54,7 +67,7 @@ def home(request):
 
 @login_required(login_url='login')
 def profiles(request, username):
-    title = 'Profiles'  
+    title = 'Profiles'
     user = request.user
     bio_form = UserBioForm()
     avatar_form = UserAvatarForm()
@@ -106,17 +119,17 @@ def settings(request, username):
                         update_session_auth_hash(request, user)
                         messages.add_message(
                             request, messages.SUCCESS, 'Password update successfully.')
-                        
+
                     else:
                         messages.add_message(
                             request, messages.ERROR, "Password confirmation doesn't match password.")
-                else: 
+                else:
                     messages.add_message(
                         request, messages.ERROR, 'Invalid password.')
 
         if 'save-profile' in request.POST:
             form = UserProfileForm(request.POST, instance=user)
-            
+
             if form.is_valid():
                 form.save()
                 messages.add_message(
@@ -151,7 +164,7 @@ def register(request):
                 setting.save()
 
                 messages.add_message(request, messages.SUCCESS,
-                                        'Create user successfully.')
+                                     'Create user successfully.')
                 return redirect('user_management')
             else:
                 messages.add_message(
@@ -183,19 +196,32 @@ def user_management(request):
 @login_required(login_url='login')
 def group_settings(request):
     title = 'Group Settings'
-    groups = UserGroup.objects.all()
+    groups = ''
+
+    obj_type_form = ObjectTypeForm()
+    object_type = ''
+
+    if request.method == 'GET':
+        obj_type_form = ObjectTypeForm(request.GET or None)
+        if obj_type_form.is_valid():
+            object_type = request.GET['object_type']
+            print(object_type)
+            groups = UserGroup.objects.filter(object_type=object_type)
 
     context = {
-        'brand': brand, 
+        'brand': brand,
         'title': title,
         'groups': groups,
+        'obj_type_form': obj_type_form,
     }
     return render(request, 'accounts/group-settings.html', context=context)
+
 
 @login_required(login_url='login')
 def group_create(request):
     title = 'Group Create'
     group_form = GroupSettingsForm()
+
     if request.method == 'POST':
         group_form = GroupSettingsForm(request.POST or None)
         if group_form.is_valid():
@@ -212,3 +238,18 @@ def group_create(request):
         'group_form': group_form,
     }
     return render(request, 'accounts/group-create.html', context=context)
+
+
+# def send_email(request, subject, msg_str, recepients):
+#     title = 'Send Email'
+#     subject = 'Welcome to DTHaus!'
+#     msg_str = 'This is an automated email of DTHaus - Thien Nguyen Vu'
+#     recepients = ['tnv.phoenix@gmail.com']
+#     send_mail(subject, msg_str, dthaus_settings.EMAIL_HOST_USER,
+#               recepients, fail_silently=False)
+
+#     context = {
+#         'brand': brand,
+#         'title': title,
+#     }
+#     return render(request, 'accounts/send-email.html', context=context)
