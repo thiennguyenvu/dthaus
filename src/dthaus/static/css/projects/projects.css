@@ -4,7 +4,11 @@
 
 .tbl-project {
   margin: 0 auto;
-  border-radius: 15px;
+}
+
+.tbl-project td {
+  border: 1.5px solid white;
+  border-radius: 5px;
 }
 
 .tbl-label {
@@ -16,16 +20,19 @@
 }
 
 .tbl-body tr:nth-child(even) {
-  background-color: #f1f1f1; /* #94DEFB */
+  background-color: #E2E0E7; 
+}
+
+.tbl-body tr:nth-child(even):hover{
+  background-color: #A2C8F9;
 }
 
 .tbl-body tr:nth-child(odd) {
+  background-color: #f1f1f1; 
 }
 
-/* Hover row effect */
-.tbl-body tr:hover td {
+.tbl-body tr:nth-child(odd):hover{
   background-color: #A2C8F9;
-  color: black;
 }
 
 .tbl-body tr:hover td a {
@@ -51,17 +58,18 @@
   background-color: #E7F1FD;
 }
 
-.tree li.parent_li > span {
+/* Tree color */
+.tree > ul > li > span {
   background-color: #1877f2;
   color: white;
 }
 
-.tree li.parent_li > ul > li > span {
+.tree > ul > li > ul > .parent_li > span {
   background-color: #5D9FF5;
   color: white;
 }
 
-.tree li.parent_li > ul > li > ul > li > span {
+.tree .parent_li > ul > li > ul > li > span {
   background-color: #A2C8F9;
   color: black;
 }
