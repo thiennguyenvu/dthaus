@@ -1,0 +1,16 @@
+#id_find_user,
+#id_selected_user {
+  min-width: 380px;
+}
+#id_selected_user {
+  margin-left: -4px;
+}
+#filter-form label,
+#select-form label {
+  min-width: 120px;
+}
+
+/* #filter-form .errorlist,
+#select-form .errorlist {
+  display: none;
+} */

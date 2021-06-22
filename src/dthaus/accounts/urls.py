@@ -12,7 +12,8 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('user-management/', views.user_management, name='user_management'),
     path('group-settings/', views.group_settings, name='group_settings'),
-    path('group-create/', views.group_create, name='group_create'),
+    path('group-permissions/<str:object_type>-<str:object_id>', views.group_permissions, name='group_permissions'),
+    path('group-management/group-<str:id_group>', views.group_management, name='group_management')
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
