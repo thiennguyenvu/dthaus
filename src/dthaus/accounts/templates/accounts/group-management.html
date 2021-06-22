@@ -1,0 +1,81 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/accounts/group-permissions.css' %}">
+<link rel="stylesheet" href="{% static 'css/accounts/group-management.css' %}">
+{% endblock head %}
+{% block body %}
+<h1 style="text-align: center;">{{ title }}</h1>
+<div>
+    {% if group %}
+    <div class="head-info">Group: <b>{{ group }}</b> - ID: <b>{{ group.id }}</b></div>
+    {% endif %}
+    
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>
+            {% if 'safe' in message.tags %} {{ message|safe }}
+            {% else %} {{ message }} {% endif %}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <div>
+        <form method="POST" id="filter-form">
+            {% csrf_token %}
+            {{ form }}
+            <br><input id="btn-find-user" style="display: none;" name="btn-find-user" type="submit">
+        </form>
+        <form method="POST" id="select-form">
+            {% csrf_token %}
+            <label for="id_selected_user">Choose a user:</label>
+            <select name="selected_user" maxlength="100" id="id_selected_user">
+                {% for user in users %}
+                <option value="{{ user }}">{{ user }} - {{ user.email }}</option>
+                {% endfor %}
+            </select>
+            <input id="btn-select-user-add" name="btn-select-user-add" type="submit" value="Add user to this group">
+            <input id="btn-select-user-delete" name="btn-select-user-delete" type="submit" value="Delete user from this group">
+        </form>
+    </div>
+
+    {% if user_group %}
+    <table>
+        <thead>
+            <th>User</th>
+            <th>Email</th>
+        </thead>
+        <tbody>
+            {% for user in user_group %}
+            <tr>
+                <td>{{ user }}</td>
+                <td>{{ user.email }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div>This group is not have any user.</div>
+    {% endif %}
+
+</div>
+{% endblock body %}
+
+{% block script %}
+<script>
+    jQuery(function ($) {
+        var timer;
+        var input = $('#id_find_user');
+
+        input[0].setSelectionRange(input.val().length, input.val().length);
+        input.focus();
+        input.keyup(function () {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                $('#btn-find-user').click();
+            }, 1500);
+        });
+    });
+</script>
+{% endblock script %}

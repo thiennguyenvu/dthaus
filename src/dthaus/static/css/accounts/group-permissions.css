@@ -1,0 +1,41 @@
+.head-info{
+    margin-top: 40px;
+    margin-bottom: 30px;
+    text-align: center;  
+    background-color: #d3d3d3;
+    font-size: 30px;
+}
+
+#id_permission {
+  list-style: none !important;
+  display: inline-block;
+  width: 50%;
+}
+
+@media only screen and (min-width: 992px) {
+  .panel-info {
+    margin: 0 auto;
+    width: 60%;
+  }
+  .panel-info div label {
+    width: 90px;
+  }
+  .panel-permission {
+    text-align: center;
+    margin-top: 30px;
+  }
+  #id_permission li {
+    width: 33%;
+    float: left;
+  }
+}
+
+@media only screen and (min-width: 1280px) {
+  .panel-info {
+    margin: 0 auto;
+    width: 50%;
+  }
+  .panel-info div label {
+    width: 100px;
+  }
+}

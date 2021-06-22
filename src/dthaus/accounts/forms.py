@@ -1,5 +1,5 @@
 from django import forms
-from django.forms import ModelForm, modelformset_factory
+from django.forms import ModelForm, modelformset_factory, widgets
 from .models import *
 
 
@@ -64,15 +64,27 @@ class UserManagementForm(ModelForm):
         }
 
 
+class UserSelectForm(forms.Form):
+    find_user = forms.CharField(max_length=100, widget=forms.TextInput(
+        attrs={'placeholder': 'Search for user', 'autocomplete': 'off'}))
+
+
+class SelectedUserForm(forms.Form):
+    selected_user = forms.CharField(label='Choose a user', max_length=100, widget=forms.Select())
+
+
 class GroupSettingsForm(ModelForm):
 
     class Meta:
         model = UserGroup
         fields = '__all__'
+        widgets = {
+            'permission': forms.CheckboxSelectMultiple,
+            'description': forms.TextInput(attrs={'placeholder': 'More info about this group'})
+        }
 
 
 class ObjectTypeForm(ModelForm):
     class Meta:
         model = UserGroup
         fields = ('object_type',)
-

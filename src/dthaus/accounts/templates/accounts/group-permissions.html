@@ -1,0 +1,148 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/accounts/group-permissions.css' %}">
+{% endblock head %}
+{% block body %}
+<!-- <h1 style="text-align: center;">{{ title }}</h1> -->
+<div>
+    <div class="head-info">{{ object_type|title }}: <b>{{ object_name }}</b> - ID: <b>{{ object_id }}</b></div>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="panel-info">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="id_object_type">Object type:</label>
+                    {{ group_form.object_type }}
+                </div>
+                <div class="col-md-6">
+                    <label for="id_name">Name:</label>
+                    {{ group_form.name }}
+                </div>
+                <div class="col-md-6">
+                    <label for="id_object_id">Object id:</label>
+                    {{ group_form.object_id }}
+                </div>
+                <div class="col-md-6">
+                    <label for="id_description">Description:</label>
+                    {{ group_form.description }}
+                </div>
+            </div>
+        </div>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>
+                {% if 'safe' in message.tags %} {{ message|safe }}
+                {% else %} {{ message }} {% endif %}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <div class="panel-permission">
+            <label>Select permissions for group (check label <b>Name</b>)</label>
+            <div>
+                <ul id="id_permission">
+                    <li>
+                        <label for="id_permission_0"><input type="checkbox" name="permission" value="1"
+                                id="id_permission_0">add</label>
+                    </li>
+                    <li>
+                        <label for="id_permission_1"><input type="checkbox" name="permission" value="2"
+                                id="id_permission_1">change</label>
+                    </li>
+                    <li>
+                        <label for="id_permission_2"><input type="checkbox" name="permission" value="3"
+                                id="id_permission_2">delete</label>
+                    </li>
+                    <li style="display: none;">
+                        <label for="id_permission_3"><input type="checkbox" name="permission" value="4"
+                                id="id_permission_3" checked>view</label>
+                    </li>
+                </ul>
+            </div>
+            <input id="create-group" name="create-group" type="submit" value="Create New Group">
+        </div>
+    </form>
+    <div>
+        <table>
+            <thead>
+                <th>ID</th>
+                <th>Permission Name</th>
+                <th></th>
+            </thead>
+            <tbody>
+                {% for group in groups %}
+                <tr>
+                    <td>{{ group.id }}</td>
+                    <td>{{ group.name }}</td>
+                    <td>
+                        <a href="{% url 'group_management' group.id %}">Manage</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock body %}
+{% block script %}
+<script>
+    jQuery(function ($) {
+        $('#id_object_type').val('{{ object_type }}');
+        $('#id_object_id').val('{{ object_id }}');
+
+        // Auto generate object name depend on permission
+        var object_name = '{{object_type}}_{{object_id}}_view';
+        $('#id_name').val(object_name).prop('disabled', true);
+        $('#id_object_type').prop('disabled', true);
+        $('#id_object_id').prop('disabled', true);
+
+        var stt_add = stt_change = stt_delete = false;
+        var permission = ''
+        $('#id_permission').change(function () {
+            if ($('#id_permission_0').is(':checked')) {
+                if (permission.indexOf('_add') == -1)
+                    if (permission.indexOf('_change') > -1) {
+                        permission = permission.replace('_change', '_add_change');
+                    } else if (permission.indexOf('_delete') > -1) {
+                        permission = permission.replace('_delete', '_add_delete');
+                    } else {
+                        permission += '_add';
+                    }
+            } else {
+                permission = permission.replace('_add', '');
+            }
+
+            if ($('#id_permission_1').is(':checked')) {
+                if (permission.indexOf('_change') == -1)
+                    if (permission.indexOf('_delete') > -1) {
+                        permission = permission.replace('_delete', '_change_delete');
+                    } else {
+                        permission += '_change';
+                    }
+            } else {
+                permission = permission.replace('_change', '');
+            }
+
+            if ($('#id_permission_2').is(':checked')) {
+                if (permission.indexOf('_delete') == -1)
+                    permission += '_delete';
+            } else {
+                permission = permission.replace('_delete', '');
+            }
+
+            /* Change value */
+            $('#id_name').prop('disabled', false);
+            $('#id_name').val(object_name + permission);
+            $('#id_name').prop('disabled', true);
+        });
+
+        $('#create-group').click(function () {
+            $('#id_name').prop('disabled', false);
+            $('#id_object_type').prop('disabled', false);
+            $('#id_object_id').prop('disabled', false);
+        });
+
+    })
+</script>
+{% endblock script %}
