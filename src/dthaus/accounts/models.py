@@ -43,7 +43,7 @@ class UserManagement(AbstractUser):
     birth_date = models.CharField(max_length=10, null=True, blank=True)
     avatar = models.ImageField(null=True, blank=True, upload_to=f"avatar")
     user_group = models.ManyToManyField(UserGroup, blank=True)
-
+    is_customer = models.BooleanField(default=False)
 
 class UserLogFile(models.Model):
     action_time = models.DateTimeField(auto_now_add=True)
@@ -51,8 +51,8 @@ class UserLogFile(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     action_code = models.CharField(max_length=20)
     object_type = models.CharField(max_length=50)
-    object_id = models.IntegerField()
-    change_message = models.CharField(max_length=255)
+    object_id = models.PositiveIntegerField()
+    change_message = models.TextField()
 
     def __str__(self):
         return f"{self.user}_{self.action_code}_{self.object_type}_id_{self.object_id}"

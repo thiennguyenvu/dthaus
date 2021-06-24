@@ -13,7 +13,8 @@ urlpatterns = [
     path('user-management/', views.user_management, name='user_management'),
     path('group-settings/', views.group_settings, name='group_settings'),
     path('group-permissions/<str:object_type>-<str:object_id>', views.group_permissions, name='group_permissions'),
-    path('group-management/group-<str:id_group>', views.group_management, name='group_management')
+    path('group-management/group-<str:id_group>', views.group_management, name='group_management'),
+    path('customers/', views.customers, name='customers'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

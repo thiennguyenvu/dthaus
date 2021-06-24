@@ -7,6 +7,10 @@ from django.core.files.storage import default_storage
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 
+from accounts.models import DJPermission
+from accounts.models import UserGroup
+from accounts.models import UserLogFile
+
 # Create your views here.
 from .models import *
 from .forms import ProjectCreateForm, PhaseCreateForm, ListPhaseForm, \
@@ -105,7 +109,7 @@ def projects(request):
                             projects.append(project)
 
             # Permission
-            if permission['object_type'] == 'project': 
+            if permission['object_type'] == 'project':
                 if str(permission['permission']) == 'add':
                     project_per_add = True
                 if str(permission['permission']) == 'change':
@@ -113,7 +117,7 @@ def projects(request):
                 if str(permission['permission']) == 'delete':
                     project_per_delete = True
 
-    form_select = ProjectSelectedForm() # Select id of project
+    form_select = ProjectSelectedForm()  # Select id of project
     choice_project = ''
     if request.method == 'POST':
         form_select = ProjectSelectedForm(request.POST)
@@ -156,7 +160,24 @@ def project_create(request):
         if request.method == 'POST':
             create_form = ProjectCreateForm(request.POST)
             if create_form.is_valid():
+                print(request.POST)
                 new_project = create_form.save()
+                # Get info of project manager
+                user = UserManagement.objects.get(
+                    id=request.POST['project_manager'])
+                # Create group full permission for this project
+                group = UserGroup(object_type='project', object_id=new_project.id,
+                                  name=f"project_{new_project.id}_view_add_change_delete")
+                group.save()
+                group.permission.set(DJPermission.objects.all())
+                # Add full permission for project manager
+                user.user_group.add(group)
+
+                # Write log file
+                log = UserLogFile(user=request.user, action_code='create',
+                                  object_type='project', object_id=new_project.id)
+                log.save()
+
                 return redirect('phase_settings', pk_project=new_project.id)
     else:
         messages.add_message(request, messages.ERROR,
@@ -218,13 +239,32 @@ def project_update(request, pk_project):
         phase_form = PhaseFormSet(instance=project)
 
         if request.method == 'POST':
-            # print('POST', request.POST)
             project_update_form = ProjectCreateForm(
                 request.POST, instance=project)
+            old_data = {
+                'name': project.name,
+                'description': project.description,
+                'status': project.status,
+                'priority': project.priority,
+                'start_date': project.start_date,
+                'due_date': project.due_date,
+                'customer': project.customer.username,
+                'project_manager': project.project_manager.username,
+            }
+
             if project_update_form.is_valid():
-                project_update_form.save()
-                messages.add_message(
-                    request, messages.SUCCESS, "Project was updated.")
+                if project_update_form.has_changed():
+                    new_project = project_update_form.save()
+
+                    # Write log file
+                    log = UserLogFile(user=request.user, action_code='change',
+                                      object_type='project', object_id=new_project.id, change_message=old_data)
+                    log.save()
+                    messages.add_message(
+                        request, messages.SUCCESS, "Project was updated.")
+                else:
+                    messages.add_message(
+                        request, messages.WARNING, "There\'s nothing to change.")
                 return redirect('projects')
     else:
         messages.add_message(request, messages.ERROR,
@@ -263,7 +303,24 @@ def project_delete(request, pk_project):
     project = Project.objects.get(id=pk_project)
     if project in projects and project_per_delete or request.user.is_superuser:
         if request.method == 'POST':
+            old_data = {
+                'name': project.name,
+                'description': project.description,
+                'status': project.status,
+                'priority': project.priority,
+                'start_date': project.start_date,
+                'due_date': project.due_date,
+                'customer': project.customer.username,
+                'project_manager': project.project_manager.username,
+            }
+
+            # Write log file
+            log = UserLogFile(user=request.user, action_code='delete',
+                              object_type='project', object_id=project.id, change_message=old_data)
+            log.save()
+
             project.delete()
+
             return redirect('projects')
     else:
         messages.add_message(request, messages.ERROR,
@@ -322,10 +379,9 @@ def phase_settings(request, pk_project):
         list_phase = CustomPhase.objects.all()
 
         all_phases_formset = modelformset_factory(CustomPhase,
-                                                form=ListPhaseForm,
-                                                can_delete=True,
-                                                )
-
+                                                  form=ListPhaseForm,
+                                                  can_delete=True,
+                                                  )
 
         if request.method == 'POST':
             if 'save-phase-settings' in request.POST:
@@ -341,7 +397,7 @@ def phase_settings(request, pk_project):
                         print(formset.errors)
                 else:
                     messages.add_message(
-                        request, messages.WARNING, 'There is nothing to change.')
+                        request, messages.WARNING, 'There\'s nothing to change.')
 
             if 'add-phase-to-project' in request.POST:
                 for phase_item in list_phase:
@@ -361,19 +417,18 @@ def phase_settings(request, pk_project):
                                 messages.add_message(
                                     request, messages.SUCCESS, f"Phase {new_phase} added.")
                             except Exception as e:
-                                messages.add_message(request, messages.ERROR, e)
+                                messages.add_message(
+                                    request, messages.ERROR, e)
                         else:
                             messages.add_message(
                                 request, messages.ERROR, f"Exists phase: {phase_exists}. Choose another name.")
 
                 return redirect('phase_edit', pk_project=pk_project)
-        
+
     else:
         messages.add_message(request, messages.ERROR,
                              "You don't have permissions for this action.")
         return redirect("projects")
-
-    
 
     context = {
         'brand': brand,
@@ -399,7 +454,7 @@ def phase_edit(request, pk_project):
 
     projects = []
     phase_view = []
-    phase_change = [] # Need permission change to each phase
+    phase_change = []  # Need permission change to each phase
     phases = []
     phase_form = ''
     project = Project.objects.get(id=pk_project)
@@ -423,7 +478,7 @@ def phase_edit(request, pk_project):
                     if phase not in phase_view:
                         phase_view.append(phase)
                         project = phase.project
-                        
+
                         if project not in projects:
                             projects.append(project)
 
@@ -456,10 +511,11 @@ def phase_edit(request, pk_project):
         # print(phases)
 
         PhaseFormSet = inlineformset_factory(Project, Phase,
-                                            PhaseCreateForm,
-                                            fields='__all__',
-                                            max_num=len(phase_change))
-        phase_form = PhaseFormSet(instance=project, queryset=Phase.objects.filter(id__in=[phase.id for phase in phase_change]))
+                                             PhaseCreateForm,
+                                             fields='__all__',
+                                             max_num=len(phase_change))
+        phase_form = PhaseFormSet(instance=project, queryset=Phase.objects.filter(
+            id__in=[phase.id for phase in phase_change]))
 
         if request.method == 'POST':
             if 'update-phase' in request.POST:
@@ -470,10 +526,11 @@ def phase_edit(request, pk_project):
                         messages.add_message(
                             request, messages.SUCCESS, 'Phase updated successfully.')
                     else:
-                        messages.add_message(request, messages.ERROR, form.error)
+                        messages.add_message(
+                            request, messages.ERROR, form.error)
                 else:
                     messages.add_message(
-                        request, messages.WARNING, 'There is nothing to change.')
+                        request, messages.WARNING, 'There\'s nothing to change.')
                 return redirect('phase_edit', project.id)
 
     else:
@@ -569,7 +626,7 @@ def task_views(request, pk_project, pk_phase):
     projects = []
     phases = []
     tasks = []
-    task_change = [] # Need permission change to each phase
+    task_change = []  # Need permission change to each phase
 
     project = Project.objects.get(id=pk_project)
     phase = Phase.objects.get(id=pk_phase)
@@ -600,17 +657,17 @@ def task_views(request, pk_project, pk_phase):
                     _phase = Phase.objects.get(id=permission['object_id'])
                     if _phase not in phases:
                         phases.append(_phase)
-                        
+
                         for _task in Task.objects.filter(phase=_phase):
                             if _task not in tasks:
                                 tasks.append(_task)
-                
+
                 # Permission view task
                 if permission['object_type'] == 'task':
                     _task = Task.objects.get(id=permission['object_id'])
                     if _task not in tasks:
                         tasks.append(_task)
-            
+
             # Permission add task
             if str(permission['permission']) == 'add':
                 if permission['object_type'] == 'project' or permission['object_type'] == 'phase':
@@ -694,7 +751,7 @@ def task_edits(request, pk_project, pk_phase, pk_task):
                         for _task in Task.objects.filter(phase=phase):
                             if _task not in tasks:
                                 tasks.append(_task)
-                # Permission view phase                
+                # Permission view phase
                 if permission['object_type'] == 'phase':
                     _phase = Phase.objects.get(id=permission['object_id'])
                     if _phase not in phases:
@@ -708,7 +765,7 @@ def task_edits(request, pk_project, pk_phase, pk_task):
                     _task = Task.objects.get(id=permission['object_id'])
                     if _task not in tasks:
                         tasks.append(_task)
-            
+
             # Permission add task
             if str(permission['permission']) == 'add':
                 task_per_add = True
@@ -752,7 +809,8 @@ def task_edits(request, pk_project, pk_phase, pk_task):
                         messages.add_message(
                             request, messages.SUCCESS, 'Task updated successfully.')
                     else:
-                        messages.add_message(request, messages.ERROR, form.errors)
+                        messages.add_message(
+                            request, messages.ERROR, form.errors)
 
                 # Handle file form
                 try:
@@ -813,7 +871,8 @@ def task_edits(request, pk_project, pk_phase, pk_task):
                         tf.attachment = f"{settings.MEDIA_URL}{file_name}"
                         tf.url = f"{settings.MEDIA_URL}{file_name}"
                         tf.task = Task.objects.get(id=pk_task, phase=phase)
-                        tf.user = UserManagement.objects.get(id=request.user.id)
+                        tf.user = UserManagement.objects.get(
+                            id=request.user.id)
                         tf.save()
 
                         messages.add_message(
@@ -829,11 +888,11 @@ def task_edits(request, pk_project, pk_phase, pk_task):
     last_file = task_files[len(task_files)-1] if len(task_files) > 0 else 0
 
     file_formset = inlineformset_factory(Task, TaskFiles,
-                                        FileApproveForm,
-                                        fields='__all__',
-                                        max_num=len(task_files))
+                                         FileApproveForm,
+                                         fields='__all__',
+                                         max_num=len(task_files))
     approve_form = file_formset(instance=task)
-    if request.method == 'POST':        
+    if request.method == 'POST':
         if 'btn-approve-file' in request.POST:
             form = file_formset(request.POST, instance=task)
 
@@ -847,7 +906,7 @@ def task_edits(request, pk_project, pk_phase, pk_task):
                 print(form.errors)
 
             messages.add_message(request, messages.SUCCESS,
-                                'Approve file successfully.')
+                                 'Approve file successfully.')
             return redirect('task_edits', project.id, phase.id, task.id)
         print(request.POST)
 
@@ -911,7 +970,7 @@ def task_delete(request, pk_project, pk_phase, pk_task):
                         for _task in Task.objects.filter(phase=_phase):
                             if _task not in tasks:
                                 tasks.append(_task)
-                
+
                 if permission['object_type'] == 'task':
                     _task = Task.objects.get(id=permission['object_id'])
                     if _task not in tasks:
@@ -919,13 +978,13 @@ def task_delete(request, pk_project, pk_phase, pk_task):
 
         if project in projects or phase in phases or task in tasks:
             task_per_delete = True
-    
+
     if task_per_delete:
         pass
     else:
         messages.add_message(request, messages.ERROR,
                              "You don't have permissions for this action.")
-        return redirect("projects")      
+        return redirect("projects")
 
     if request.method == 'POST':
         task.delete()

@@ -154,7 +154,7 @@ def settings(request, username):
 
 @login_required(login_url='login')
 def register(request):
-    title = 'Register Page'
+    title = 'User Register'
 
     register_form = UserRegisterForm()
 
@@ -183,6 +183,19 @@ def register(request):
         'register_form': register_form,
     }
     return render(request, 'accounts/register.html', context=context)
+
+
+@login_required(login_url='login')
+def customers(request):
+    title = 'Customers'
+    customers = UserManagement.objects.filter(is_customer=True)
+    
+    context = {
+        'brand': brand,
+        'title': title,
+        'customers': customers,
+    }
+    return render(request, 'accounts/customers.html', context=context)
 
 
 @login_required(login_url='login')
@@ -309,8 +322,6 @@ def group_permissions(request, object_type, object_id):
     title = 'Group Permissions'
     groups = UserGroup.objects.filter(
         object_type=object_type, object_id=object_id)
-    print(groups)
-    print(object_type, object_id)
 
     object_name = ''
     if object_type == 'project':
@@ -410,9 +421,6 @@ def group_management(request, id_group):
                 user = UserManagement.objects.get(username=selected_user)
                 if not user.is_superuser:
                     user.user_group.remove(group)
-
-        print(request.POST)
-        pass
 
     context = {
         'brand': brand,

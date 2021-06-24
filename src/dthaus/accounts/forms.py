@@ -48,7 +48,8 @@ class UserRegisterForm(ModelForm):
         model = UserManagement
         fields = '__all__'
         exclude = ('is_superuser', 'last_login', 'is_staff',
-                   'user_permissions', 'date_joined', 'is_active')
+                   'user_permissions', 'date_joined', 'is_active'
+                   'user_group')
         widgets = {
             'birth_date': DateInput(),
             'password': forms.PasswordInput(),
