@@ -5,37 +5,3 @@ from django.contrib import messages
 from .models import *
 from .forms import CustomerCreateForm
 brand = 'DONGJIN VIETNAM'
-
-@login_required(login_url='login')
-def customers(request):
-    title = 'Customers'
-
-    customers = Customer.objects.all()
-
-    context = {
-        'brand': brand,
-        'title': title,
-        'customers': customers,
-    }
-    
-    return render(request, 'customers/customers.html', context)
-
-@login_required(login_url='login')
-def customer_create(request):
-    title = 'Add New Customer'
-    create_form = CustomerCreateForm()
-
-    if request.method == 'POST':
-        form = CustomerCreateForm(request.POST)
-        if form.is_valid():
-            new_customer = form.save()
-            return redirect('customers')
-        else:
-            messages.add_message(request, messages.ERROR, form.errors)
-
-    context = {
-        'brand': brand,
-        'title': title,
-        'create_form': create_form,
-    }
-    return render(request, 'customers/customer-create.html', context)

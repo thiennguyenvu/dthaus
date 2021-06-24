@@ -1,0 +1,39 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block head %}
+<!-- <link rel="stylesheet" href="{% static 'css/profile.css' %}"> -->
+{% endblock head %}
+{% block body %}
+<h1 style="text-align: center;">{{ title }}</h1>
+<div><a href="{% url 'register'  %}">Add new customer</a></div>
+<div>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>
+            {% if 'safe' in message.tags %} {{ message|safe }}
+            {% else %} {{ message }} {% endif %}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <table>
+        <thead>
+            <th>Customer</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td>{{ customer }}</td>
+                <td>{{ customer.first_name }}</td>
+                <td>{{ customer.last_name }}</td>
+                <td>{{ customer.email }} </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock body %}

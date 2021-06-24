@@ -6,7 +6,6 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 
 # Create your models here.
-from customers.models import Customer
 from accounts.models import UserManagement
 
 
@@ -38,9 +37,9 @@ class Project(models.Model):
     start_date = models.DateTimeField(default=now)
     due_date = models.DateTimeField(null=True)
     progress = models.IntegerField(default=0)
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True)
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, related_name='project_customer')
     project_manager = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE)
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE, related_name='project_manager')
     phase_order = models.BooleanField(default=True)
     date_finished = models.DateTimeField(blank=True, null=True)
 

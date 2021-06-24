@@ -19,6 +19,11 @@
         {% csrf_token %}
         {{ register_form.management }}
         <p>
+            <label for="id_is_customer">Is customer:</label>
+            <input type="checkbox" name="is_customer" id="id_is_customer">
+            <span>(Check it if create account for customer)</span>
+        </p>
+        <p>
             <label for="id_username">Username:</label>
             {{ register_form.username }}
         </p>
@@ -53,10 +58,6 @@
         <p>
             <label for="id_bio">Bio:</label>
             {{ register_form.bio }}
-        </p>
-        <p>
-            <label for="id_user_group">Group User:</label>
-            {{ register_form.user_group }}
         </p>
         <a href="{% url 'user_management' %}"><input type="button" value="Back to User Management"></a>
         <input type="submit" value="Create User">
