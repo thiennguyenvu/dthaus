@@ -165,6 +165,7 @@ def register(request):
             plain_password = form.cleaned_data['password']
             confirm_password = form.cleaned_data['confirm_password']
             if plain_password == confirm_password:
+                setting.is_active = True
                 setting.password = make_password(plain_password)
                 setting.save()
 
