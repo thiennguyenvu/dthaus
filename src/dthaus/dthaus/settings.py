@@ -27,8 +27,8 @@ SECRET_KEY = '=wrr$qsdb1f6@x0!m1h##i6%e^ap9!ukw8vmy+x29k$8g*2#pz'
 DEBUG = False
 
 ALLOWED_HOSTS = ['*']
-runserver.default_port = '8000'
-runserver.default_addr = '127.0.0.1'
+runserver.default_port = '9001'
+runserver.default_addr = '192.168.7.8'
 
 # Application definition
 
@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'accounts',
     'projects',
-    'customers',
 ]
 
 MIDDLEWARE = [
@@ -90,7 +89,7 @@ DATABASES = {
     'default': {
         'NAME': 'django',
         'ENGINE': 'sql_server.pyodbc',
-        'HOST': 'LAPTOP-TNV',
+        'HOST': 'MMP',
         'USER': '',
         'PASSWORD': '',
         'OPTIONS': {
@@ -143,7 +142,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
+MEDIA_URL = 'http://113.176.69.32/media/'
 if DEBUG:
     STATICFILES_DIRS = [
         os.path.join(BASE_DIR, 'static')
